@@ -3,271 +3,685 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Sports 803 Player</title>
-
+<title>Live Stream Player</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=DM+Mono:wght@500&amp;display=swap" rel="stylesheet">
 <script src="https://cdn.jwplayer.com/libraries/IDzF9Zmk.js"></script>
-
-<!-- Chromecast -->
-<script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
-
+<link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-Y5EVJ9NQ5B"></script>
+<script>
+  window.dataLayer=window.dataLayer||[];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js',new Date());
+  gtag('config','G-Y5EVJ9NQ5B',{send_page_view:true,transport_type:'beacon'});
+</script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
---red:#e5181a;
---bg:#000;
---glass:rgba(0,0,0,.6);
---text:#fff;
---dim:rgba(255,255,255,.6);
+  --red:#e5181a;--red-dim:rgba(229,24,26,0.18);--red-hover:#ff2d2f;
+  --bg:#0a0a0a;--surface:#121212;--surface2:#1a1a1a;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+  --text:#ffffff;--dim:rgba(255,255,255,0.65);--faint:rgba(255,255,255,0.35);
+  --glass:rgba(18,18,18,0.92);
+  --font:'DM Sans',system-ui,sans-serif;--mono:'DM Mono',monospace;
+  --r:14px;--t:.22s;--ease:cubic-bezier(0.4,0,0.2,1);
 }
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:var(--font);color:var(--text);-webkit-font-smoothing:antialiased}
+#app{display:flex;flex-direction:column;width:100%;height:100%;position:fixed;inset:0}
 
-body{background:#000;font-family:sans-serif;color:#fff;overflow:hidden}
+/* Stage */
+#stage{position:relative;flex:1;background:#000;overflow:hidden}
+#player-host,#embed-host{position:absolute;inset:0;width:100%;height:100%}
+#player-host{background:#000;z-index:2;display:none}
+#embed-host{z-index:3;display:none;flex-direction:column;background:#000}
+#embed-host.active{display:flex}
 
-#player{position:fixed;inset:0}
-
-/* TOP BAR */
-#topbar{
-position:absolute;top:0;left:0;right:0;
-display:flex;align-items:center;gap:10px;
-padding:10px;
-background:var(--glass);
-backdrop-filter:blur(10px);
-z-index:10;
+/* Modern unified control bar */
+#control-bar{
+  position:absolute;bottom:0;left:0;right:0;z-index:30;
+  background:var(--glass);backdrop-filter:blur(20px);
+  border-top:1px solid var(--border2);
+  padding:8px 12px 14px;opacity:0;transform:translateY(20px);
+  transition:all var(--t) var(--ease);pointer-events:none;
+  display:flex;flex-direction:column;gap:10px;
 }
-
-#thumb{
-width:40px;height:40px;
-border-radius:6px;
-object-fit:cover;
-background:#111;
+#stage.controls-visible #control-bar{
+  opacity:1;transform:translateY(0);pointer-events:auto;
 }
+.pb-row{display:flex;align-items:center;gap:12px}
+.progress-container{flex:1;height:4px;background:rgba(255,255,255,0.15);border-radius:999px;cursor:pointer;position:relative}
+#progress-bar{height:100%;width:0%;background:var(--red);border-radius:999px;transition:width .1s linear}
+#progress-bar::after{content:'';position:absolute;right:-5px;top:-4px;width:12px;height:12px;background:var(--red);border-radius:50%;opacity:0;transition:opacity .2s}
+#stage.controls-visible #progress-bar::after{opacity:1}
 
-#title{
-font-size:13px;
-font-weight:600;
-flex:1;
+/* Stream pills */
+#stream-pills{
+  display:flex;gap:6px;overflow-x:auto;padding:2px 0;scrollbar-width:none;flex-shrink:0;
+  -webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;
 }
-
-#live{color:red;font-size:11px;font-weight:700}
-
-/* CONTROLS */
-#controls{
-position:absolute;
-bottom:0;left:0;right:0;
-display:flex;gap:8px;
-padding:10px;
-overflow-x:auto;
-background:var(--glass);
-backdrop-filter:blur(10px);
+#stream-pills::-webkit-scrollbar{display:none}
+.s-pill{
+  display:flex;align-items:center;gap:6px;
+  padding:8px 14px;height:42px;min-width:110px;
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:999px;color:var(--dim);font-size:13px;font-weight:600;
+  cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all var(--t) var(--ease);
+  scroll-snap-align:start;
 }
-
-.btn{
-padding:10px 14px;
-background:#111;
-border-radius:8px;
-font-size:13px;
-white-space:nowrap;
+.s-pill:hover{background:rgba(255,255,255,0.09);color:var(--text)}
+.s-pill.active{
+  background:var(--red-dim);border-color:rgba(229,24,26,0.5);color:var(--text);
 }
+.s-pill .dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.3)}
+.s-pill.active .dot{background:var(--red);animation:blink 1.6s infinite}
 
-/* SHEET */
-#sheet{
-position:fixed;
-bottom:-100%;
-left:0;right:0;
-background:#111;
-padding:20px;
-border-radius:16px 16px 0 0;
-transition:.3s;
-z-index:20;
+/* Right controls */
+.right-controls{display:flex;gap:6px;align-items:center;margin-left:auto}
+.r-btn{
+  width:42px;height:42px;display:flex;align-items:center;justify-content:center;
+  background:var(--surface2);border:1px solid var(--border2);border-radius:999px;
+  color:var(--dim);font-size:18px;cursor:pointer;transition:all var(--t) var(--ease);
 }
+.r-btn:hover{background:rgba(255,255,255,0.12);color:var(--text);transform:scale(1.08)}
+.r-btn:active{transform:scale(0.92)}
 
-#sheet.show{bottom:0}
-
-.sheet-btn{
-padding:14px;
-background:#222;
-margin-bottom:10px;
-border-radius:10px;
+/* Big centered play button */
+#big-play{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.4);z-index:10;opacity:0;pointer-events:none;transition:opacity .3s;
 }
+#big-play.show{opacity:1;pointer-events:auto}
+#big-play-btn{
+  width:88px;height:88px;border-radius:999px;background:var(--red);
+  display:flex;align-items:center;justify-content:center;color:#fff;
+  box-shadow:0 10px 40px rgba(229,24,26,0.4);transition:transform .2s;
+}
+#big-play-btn:active{transform:scale(0.9)}
 
-/* LOADING */
+/* Live badge + title */
+#header-info{
+  position:absolute;top:16px;left:16px;z-index:25;display:flex;flex-direction:column;gap:6px;
+}
+#live-badge{
+  background:rgba(0,0,0,0.65);backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,0.1);border-radius:999px;
+  padding:6px 14px 6px 8px;display:flex;align-items:center;gap:7px;
+  font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;
+  opacity:0;transition:opacity .3s;pointer-events:none;
+}
+#live-badge.on{opacity:1}
+.live-dot{width:8px;height:8px;background:var(--red);border-radius:50%;animation:blink 1.4s infinite}
+#stream-title{
+  background:rgba(0,0,0,0.65);backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,0.1);border-radius:999px;
+  padding:6px 14px;color:var(--text);font-size:13.5px;font-weight:600;
+  max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  opacity:0;transition:opacity .3s;
+}
+#stream-title.show{opacity:1}
+
+/* Loading */
 #loading{
-position:absolute;inset:0;
-display:flex;align-items:center;justify-content:center;
-background:#000;z-index:15;
+  position:absolute;inset:0;z-index:40;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);
+  display:none;flex-direction:column;justify-content:center;align-items:center;gap:18px;
 }
+#loading.active{display:flex}
+.spinner{width:52px;height:52px;border:3px solid rgba(255,255,255,0.15);border-top-color:var(--red);border-radius:50%;animation:spin 0.9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
+/* Toasts & banners */
+#toast,#sw-banner{
+  position:absolute;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);
+  z-index:50;background:var(--glass);backdrop-filter:blur(16px);
+  border:1px solid var(--border2);border-radius:999px;padding:10px 22px;
+  color:var(--text);font-size:13.5px;font-weight:600;white-space:nowrap;
+  opacity:0;transition:all .25s cubic-bezier(0.4,0,0.2,1);pointer-events:none;
+}
+#toast.show,#sw-banner.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Gesture hint */
+#g-hint{
+  position:absolute;bottom:140px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,0.7);backdrop-filter:blur(12px);border:1px solid var(--border);
+  color:var(--dim);font-size:12px;padding:8px 20px;border-radius:999px;
+  opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;
+}
+#g-hint.show{opacity:1}
+
+/* Error panels */
+#err-panel,#embed-err{
+  position:absolute;inset:0;z-index:60;background:rgba(0,0,0,0.92);backdrop-filter:blur(12px);
+  display:none;flex-direction:column;justify-content:center;align-items:center;gap:16px;padding:24px;
+}
+#err-panel.active,#embed-err.active{display:flex}
+.ee-box,.err-box{
+  background:var(--surface);border:1px solid var(--border2);border-radius:var(--r);
+  padding:32px 28px;max-width:380px;width:100%;text-align:center;
+}
+.ee-title,.err-ttl{font-size:17px;font-weight:700;margin-bottom:8px}
+.ee-msg,.err-msg{color:var(--dim);line-height:1.6}
+
+/* Cast buttons */
+.cast-btn{
+  width:42px;height:42px;display:flex;align-items:center;justify-content:center;
+  background:var(--surface2);border:1px solid var(--border2);border-radius:999px;
+  color:var(--dim);font-size:19px;cursor:pointer;transition:all var(--t) var(--ease);
+}
+.cast-btn:hover{background:rgba(255,255,255,0.12);color:var(--text);transform:scale(1.08)}
+.cast-btn:active{transform:scale(0.92)}
+
+/* Responsive */
+@media(max-width:520px){
+  #control-bar{padding:8px 10px 12px;gap:8px}
+  .s-pill{min-width:96px;padding:7px 12px;font-size:12.5px;height:38px}
+  .r-btn,.cast-btn{width:38px;height:38px;font-size:17px}
+  #stream-title{max-width:180px;font-size:13px}
+}
+@media(max-width:380px){
+  .s-pill{min-width:82px;padding:6px 10px}
+}
 </style>
 </head>
-
 <body>
+<div id="app">
+  <div id="stage">
+    <div id="init-ph" style="position:absolute;inset:0;display:flex;justify-content:center;align-items:center;background:#000;z-index:5"><p style="color:var(--faint);font-size:15px">Initializing player...</p></div>
 
-<div id="player"></div>
+    <div id="player-host"></div>
 
-<!-- TOP BAR -->
-<div id="topbar">
-<img id="thumb">
-<div id="title">Loading…</div>
-<div id="live">LIVE</div>
+    <!-- Embed host -->
+    <div id="embed-host">
+      <iframe id="embed-frame"
+        allow="autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write; web-share; accelerometer; gyroscope"
+        referrerpolicy="no-referrer-when-downgrade"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-presentation allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-downloads"
+        allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:none;background:#000;opacity:0;transition:opacity .4s"></iframe>
+      <div id="embed-err">
+        <div class="ee-box">
+          <div style="font-size:52px;margin-bottom:12px" id="ee-icon">📡</div>
+          <div class="ee-title" id="ee-title">Stream unavailable</div>
+          <div class="ee-msg" id="ee-msg">Could not load this source.</div>
+          <div style="margin-top:20px;display:flex;gap:10px;justify-content:center">
+            <button onclick="SP.retryEmbed()" style="padding:12px 28px;background:var(--red);color:#fff;border:none;border-radius:999px;font-weight:700;cursor:pointer">Try Again</button>
+            <button onclick="SP.nextEmbedSource()" id="ee-next" style="display:none;padding:12px 28px;background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:999px;font-weight:700;cursor:pointer">Next Source</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Header info (Live + Title) -->
+    <div id="header-info">
+      <div id="live-badge"><span class="live-dot"></span><span id="live-lbl">LIVE</span></div>
+      <div id="stream-title"></div>
+    </div>
+
+    <!-- Big centered play button -->
+    <div id="big-play">
+      <div id="big-play-btn">
+        <svg width="38" height="38" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v14l11-7z"/></svg>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading">
+      <div class="spinner"></div>
+      <div id="load-txt" style="color:var(--dim);font-size:14.5px;font-weight:500">Loading stream...</div>
+    </div>
+
+    <!-- Switching banner -->
+    <div id="sw-banner"><span style="color:var(--amber);margin-right:8px">↻</span><span id="sw-txt">Switching to backup source...</span></div>
+
+    <!-- Error panel -->
+    <div id="err-panel">
+      <div class="err-box">
+        <div style="font-size:48px;margin-bottom:16px" id="err-ico">⚠️</div>
+        <div class="err-ttl" id="err-ttl">Playback error</div>
+        <div class="err-msg" id="err-msg"></div>
+        <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+          <button onclick="SP.handleErrorRetry()" class="err-btn retry" id="btn-retry" style="padding:12px 32px;background:var(--red);color:#fff;border:none;border-radius:999px;font-weight:700">Retry</button>
+          <button onclick="SP.handleErrorFallback()" class="err-btn sec" style="padding:12px 28px;background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:999px;font-weight:700">Use Backup</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Unified modern control bar -->
+    <div id="control-bar">
+      <!-- Stream pills -->
+      <div id="stream-pills"></div>
+
+      <!-- Progress + right controls -->
+      <div class="pb-row">
+        <div class="progress-container" onclick="SP.seek(event)">
+          <div id="progress-bar"></div>
+        </div>
+
+        <div class="right-controls">
+          <button onclick="SP.togglePlay()" class="r-btn" id="play-btn" title="Play/Pause">
+            <svg id="play-icon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v14l11-7z"/></svg>
+          </button>
+
+          <!-- Chromecast -->
+          <button id="cast-btn" class="cast-btn" title="Cast to Chromecast" style="display:none">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M2 16h4a2 2 0 0 1 2 2v2"/><path d="M2 12h8"/></svg>
+          </button>
+
+          <!-- AirPlay (Safari only) -->
+          <button id="airplay-btn" class="cast-btn" title="AirPlay" style="display:none">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M12 17l-4-4h8l-4 4z"/></svg>
+          </button>
+
+          <button onclick="SP.toggleFullscreen()" class="r-btn" title="Fullscreen">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          </button>
+          <button onclick="SP.togglePiP()" class="r-btn" title="Picture in Picture">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><rect x="13" y="11" width="9" height="8" rx="1"/></svg>
+          </button>
+          <button onclick="SP.refresh()" class="r-btn" title="Refresh">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          </button>
+          <button onclick="SP.showHelp()" class="r-btn" title="Help">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast"></div>
+    <!-- Gesture hint -->
+    <div id="g-hint"></div>
+
+    <!-- Shortcuts overlay -->
+    <div id="sc-overlay" style="position:absolute;inset:0;z-index:70;background:rgba(0,0,0,0.94);backdrop-filter:blur(12px);display:none;justify-content:center;align-items:center;padding:20px">
+      <div style="background:var(--surface);border:1px solid var(--border2);border-radius:18px;padding:28px;max-width:460px;width:100%">
+        <div style="font-size:17px;font-weight:700;text-align:center;margin-bottom:20px">Keyboard Shortcuts</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="background:rgba(255,255,255,0.04);padding:10px 14px;border-radius:10px;display:flex;align-items:center;gap:12px"><span style="background:var(--red);color:#fff;padding:3px 10px;border-radius:6px;font-family:var(--mono);font-size:11px">S</span><span style="color:var(--dim);font-size:14px">Switch stream</span></div>
+          <div style="background:rgba(255,255,255,0.04);padding:10px 14px;border-radius:10px;display:flex;align-items:center;gap:12px"><span style="background:var(--red);color:#fff;padding:3px 10px;border-radius:6px;font-family:var(--mono);font-size:11px">R</span><span style="color:var(--dim);font-size:14px">Refresh</span></div>
+          <div style="background:rgba(255,255,255,0.04);padding:10px 14px;border-radius:10px;display:flex;align-items:center;gap:12px"><span style="background:var(--red);color:#fff;padding:3px 10px;border-radius:6px;font-family:var(--mono);font-size:11px">F</span><span style="color:var(--dim);font-size:14px">Fullscreen</span></div>
+          <div style="background:rgba(255,255,255,0.04);padding:10px 14px;border-radius:10px;display:flex;align-items:center;gap:12px"><span style="background:var(--red);color:#fff;padding:3px 10px;border-radius:6px;font-family:var(--mono);font-size:11px">P</span><span style="color:var(--dim);font-size:14px">Picture-in-Picture</span></div>
+          <div style="background:rgba(255,255,255,0.04);padding:10px 14px;border-radius:10px;display:flex;align-items:center;gap:12px"><span style="background:var(--red);color:#fff;padding:3px 10px;border-radius:6px;font-family:var(--mono);font-size:11px">Space</span><span style="color:var(--dim);font-size:14px">Play / Pause</span></div>
+          <div style="background:rgba(255,255,255,0.04);padding:10px 14px;border-radius:10px;display:flex;align-items:center;gap:12px"><span style="background:var(--red);color:#fff;padding:3px 10px;border-radius:6px;font-family:var(--mono);font-size:11px">?</span><span style="color:var(--dim);font-size:14px">Show help</span></div>
+        </div>
+        <button onclick="SP.closeHelp()" style="width:100%;margin-top:24px;padding:14px;background:var(--red);color:#fff;border:none;border-radius:999px;font-weight:700;font-size:15px;cursor:pointer">Close</button>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- CONTROLS -->
-<div id="controls">
-<div class="btn" onclick="nextStream()">Switch</div>
-<div class="btn" onclick="refresh()">Refresh</div>
-<div class="btn" onclick="openSheet()">Settings</div>
-<div class="btn" onclick="cast()">Cast</div>
-<div class="btn" onclick="airplay()">AirPlay</div>
-<div class="btn" onclick="fullscreen()">Fullscreen</div>
-</div>
-
-<!-- SETTINGS -->
-<div id="sheet">
-<div class="sheet-btn" onclick="nextStream()">Switch Stream</div>
-<div class="sheet-btn" onclick="refresh()">Refresh</div>
-<div class="sheet-btn" onclick="cast()">Chromecast</div>
-<div class="sheet-btn" onclick="airplay()">AirPlay</div>
-<div class="sheet-btn" onclick="fullscreen()">Fullscreen</div>
-<div class="sheet-btn" onclick="closeSheet()">Close</div>
-</div>
-
-<div id="loading">Loading stream...</div>
-
+<script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
 <script>
+'use strict';
 
-/* STREAMS */
-let streams=new URLSearchParams(location.search).getAll("mora");
-let index=0;
-let player;
+const SP = (() => {
+  const CFG = {
+    FALLBACK_URL: 'https://soulmap1.blogspot.com/p/media-player.html?mora=https://tv.sportsnews.id/p/isra3.html',
+    STORAGE_KEY: 'sp_idx', CACHE_PREFIX: 'sp_c_', CACHE_TTL: 5*60*1000,
+    PLAYER_TO: 14000, MAX_RETRY: 2, CTRL_FADE: 2800, GESTURE_T: 55,
+    EMBED_TO: 15000, EMBED_HTO: 8000, EMBED_DEAD_PX: 60,
+    SANDBOX: 'allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-presentation allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-downloads'
+  };
 
-/* INIT */
-init();
+  const D = {
+    stage: document.getElementById('stage'),
+    host: document.getElementById('player-host'),
+    embedHost: document.getElementById('embed-host'),
+    embedFrame: document.getElementById('embed-frame'),
+    embedErr: document.getElementById('embed-err'),
+    eeNext: document.getElementById('ee-next'),
+    loading: document.getElementById('loading'),
+    loadTxt: document.getElementById('load-txt'),
+    swBanner: document.getElementById('sw-banner'),
+    swTxt: document.getElementById('sw-txt'),
+    errPanel: document.getElementById('err-panel'),
+    errTtl: document.getElementById('err-ttl'),
+    errMsg: document.getElementById('err-msg'),
+    liveBadge: document.getElementById('live-badge'),
+    liveLbl: document.getElementById('live-lbl'),
+    streamTitle: document.getElementById('stream-title'),
+    toast: document.getElementById('toast'),
+    gHint: document.getElementById('g-hint'),
+    controlBar: document.getElementById('control-bar'),
+    streamPills: document.getElementById('stream-pills'),
+    progressBar: document.getElementById('progress-bar'),
+    bigPlay: document.getElementById('big-play'),
+    playBtn: document.getElementById('play-btn'),
+    playIcon: document.getElementById('play-icon'),
+    castBtn: document.getElementById('cast-btn'),
+    airplayBtn: document.getElementById('airplay-btn'),
+    scOverlay: document.getElementById('sc-overlay')
+  };
 
-function init(){
-fetchMeta(); // 🔥 auto title + thumbnail
-if(!streams.length){
-document.getElementById("loading").innerText="No stream";
-return;
-}
-play(streams[index]);
-}
+  let streams = [], curIdx = 0, curStream = null, curPlayer = null, instances = [], curAdapter = '', isPlaying = false, playGen = 0;
+  let ctrlTimeout = null, toastTimeout = null, gTimeout = null, swTimeout = null;
+  let castSession = null, castFramework = null;
 
-/* PLAYER */
-function play(url){
-document.getElementById("loading").style.display="flex";
+  const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && 'ontouchend' in document);
+  const isSafari = () => /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-player=jwplayer("player").setup({
-file:url,
-autostart:true,
-width:"100%",
-height:"100%"
-});
+  function toast(msg, dur = 2200) {
+    clearTimeout(toastTimeout);
+    D.toast.textContent = msg;
+    D.toast.classList.add('show');
+    toastTimeout = setTimeout(() => D.toast.classList.remove('show'), dur);
+  }
 
-player.on("ready",()=>{
-document.getElementById("loading").style.display="none";
-});
+  function showSwBanner(msg = 'Switching to backup...') {
+    clearTimeout(swTimeout);
+    D.swTxt.textContent = msg;
+    D.swBanner.classList.add('show');
+    swTimeout = setTimeout(() => D.swBanner.classList.remove('show'), 3200);
+  }
 
-player.on("error",()=>nextStream());
-}
+  function hideError() { D.errPanel.classList.remove('active'); }
+  function showError(raw = '') {
+    hideError();
+    D.errTtl.textContent = 'Stream not working';
+    D.errMsg.textContent = raw || 'Please try another source or refresh';
+    D.errPanel.classList.add('active');
+  }
 
-/* STREAM CONTROL */
-function nextStream(){
-index=(index+1)%streams.length;
-play(streams[index]);
-toast("Switched stream");
-}
+  function setHeaderInfo(title = '') {
+    D.liveLbl.textContent = `LIVE`;
+    D.liveBadge.classList.add('on');
+    if (title) {
+      D.streamTitle.textContent = title;
+      D.streamTitle.classList.add('show');
+    }
+  }
 
-function refresh(){
-play(streams[index]);
-toast("Refreshing...");
-}
+  // Fetch title & thumbnail from referrer / parent page (for embeds)
+  async function fetchPostMetadata() {
+    let title = 'Live Stream';
+    let thumb = '';
 
-/* FULLSCREEN */
-function fullscreen(){
-let el=document.documentElement;
-if(!document.fullscreenElement) el.requestFullscreen();
-else document.exitFullscreen();
-}
+    try {
+      // Try document referrer or parent
+      const ref = document.referrer || (window.parent !== window ? location.href : '');
+      if (ref) {
+        // Simple fallback: use page title if available
+        if (document.title && document.title !== 'Live Stream Player') {
+          title = document.title.replace(' | Live Stream Player', '').trim();
+        }
+        // For Blogger / common sites, try to extract from meta or og tags (limited by CORS)
+        // In practice, for your use case (embedded in posts), pass via URL param or use this as base
+      }
+      // If you pass ?title=...&thumb=... in the embed URL, use them
+      const urlParams = new URLSearchParams(location.search);
+      if (urlParams.get('title')) title = decodeURIComponent(urlParams.get('title'));
+      if (urlParams.get('thumb')) thumb = decodeURIComponent(urlParams.get('thumb'));
+    } catch (e) {}
 
-/* 🔥 AUTO META FETCH (Blogger / OG tags) */
-function fetchMeta(){
-try{
-let parentDoc=window.parent.document;
+    return {title, thumb};
+  }
 
-// title
-let title=
-parentDoc.querySelector("meta[property='og:title']")?.content ||
-parentDoc.title ||
-"Sports 803";
+  function buildStreamPills() {
+    D.streamPills.innerHTML = '';
+    streams.forEach((s, i) => {
+      const pill = document.createElement('div');
+      pill.className = `s-pill ${i === curIdx ? 'active' : ''}`;
+      pill.innerHTML = `<span class="dot"></span><span>${s.name || 'Source ' + (i+1)}</span>`;
+      pill.onclick = () => { if (i !== curIdx) go(i); };
+      D.streamPills.appendChild(pill);
+    });
+  }
 
-document.getElementById("title").innerText=title;
+  function updateActivePill() {
+    Array.from(D.streamPills.children).forEach((p, i) => p.classList.toggle('active', i === curIdx));
+  }
 
-// image
-let img=
-parentDoc.querySelector("meta[property='og:image']")?.content ||
-parentDoc.querySelector("img")?.src ||
-"";
+  function showControls() {
+    D.stage.classList.add('controls-visible');
+    clearTimeout(ctrlTimeout);
+    ctrlTimeout = setTimeout(() => {
+      if (isPlaying) D.stage.classList.remove('controls-visible');
+    }, CFG.CTRL_FADE);
+  }
 
-if(img) document.getElementById("thumb").src=img;
+  function togglePlay() {
+    if (!curPlayer) return;
+    if (curPlayer instanceof HTMLVideoElement) {
+      curPlayer.paused ? curPlayer.play() : curPlayer.pause();
+    }
+    isPlaying = !isPlaying;
+    updatePlayIcon();
+  }
 
-}catch(e){
-document.getElementById("title").innerText="Sports 803";
-}
-}
+  function updatePlayIcon() {
+    D.playIcon.innerHTML = isPlaying 
+      ? `<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>` 
+      : `<path d="M8 5.14v14l11-7z"/>`;
+  }
 
-/* 📡 CHROMECAST */
-let castSession=null;
+  function seek(e) {
+    if (!curPlayer || !(curPlayer instanceof HTMLVideoElement)) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const percent = (e.clientX - rect.left) / rect.width;
+    if (curPlayer.duration) curPlayer.currentTime = percent * curPlayer.duration;
+  }
 
-function cast(){
-if(!window.cast || !cast.framework){
-toast("Cast not supported");
-return;
-}
+  // Chromecast support
+  function initCast() {
+    if (typeof cast === 'undefined' || !cast.framework) {
+      D.castBtn.style.display = 'none';
+      return;
+    }
+    D.castBtn.style.display = 'flex';
 
-const context=cast.framework.CastContext.getInstance();
-context.requestSession().then(()=>{
-castSession=context.getCurrentSession();
+    window.__onGCastApiAvailable = (isAvailable) => {
+      if (isAvailable) {
+        castFramework = new cast.framework.CastContext();
+        castFramework.setOptions({
+          receiverApplicationId: cast.framework.CastReceiverApplication.DEFAULT_MEDIA_RECEIVER_ID,
+          autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+        });
 
-const mediaInfo=new chrome.cast.media.MediaInfo(streams[index],'video/mp4');
-const request=new chrome.cast.media.LoadRequest(mediaInfo);
+        castFramework.addEventListener(
+          cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
+          (ev) => {
+            if (ev.sessionState === cast.framework.SessionState.SESSION_STARTED) {
+              castSession = castFramework.getCurrentSession();
+              toast('Casting started');
+            }
+          }
+        );
 
-castSession.loadMedia(request);
-toast("Casting...");
-});
-}
+        D.castBtn.onclick = () => {
+          if (!curStream || !curStream.url) return toast('No stream to cast');
+          const mediaInfo = new chrome.cast.media.MediaInfo(curStream.url, curStream.type === 'hls' ? 'application/x-mpegURL' : 'video/mp4');
+          const request = new chrome.cast.media.LoadRequest(mediaInfo);
+          castSession.loadMedia(request).then(() => toast('Casting...'), (err) => toast('Cast failed'));
+        };
+      }
+    };
+  }
 
-/* 🍎 AIRPLAY */
-function airplay(){
-let video=document.querySelector("video");
+  // AirPlay support (Safari)
+  function initAirPlay() {
+    if (!isSafari() || !('WebKitPlaybackTargetAvailabilityEvent' in window)) {
+      D.airplayBtn.style.display = 'none';
+      return;
+    }
+    D.airplayBtn.style.display = 'flex';
 
-if(video && video.webkitShowPlaybackTargetPicker){
-video.webkitShowPlaybackTargetPicker();
-}else{
-toast("AirPlay not supported");
-}
-}
+    const videoForAirplay = () => {
+      const vid = D.stage.querySelector('video');
+      if (!vid) return null;
+      vid.setAttribute('x-webkit-airplay', 'allow');
+      return vid;
+    };
 
-/* UI */
-function openSheet(){document.getElementById("sheet").classList.add("show")}
-function closeSheet(){document.getElementById("sheet").classList.remove("show")}
+    D.airplayBtn.onclick = () => {
+      const vid = videoForAirplay();
+      if (vid && vid.webkitShowPlaybackTargetPicker) {
+        vid.webkitShowPlaybackTargetPicker();
+      } else {
+        toast('AirPlay not available');
+      }
+    };
+  }
 
-/* TOAST */
-function toast(msg){
-let t=document.createElement("div");
-t.innerText=msg;
-t.style.position="absolute";
-t.style.bottom="80px";
-t.style.left="50%";
-t.style.transform="translateX(-50%)";
-t.style.background="#111";
-t.style.padding="8px 16px";
-t.style.borderRadius="20px";
-document.body.appendChild(t);
-setTimeout(()=>t.remove(),2000);
-}
+  async function playStream(stream, gen) {
+    hideError();
+    D.host.style.display = 'none';
+    D.embedHost.classList.remove('active');
+    D.bigPlay.classList.remove('show');
+    clearHost();
 
+    const meta = await fetchPostMetadata();
+    setHeaderInfo(meta.title);
+
+    if (stream.type === 'embed') {
+      D.embedHost.classList.add('active');
+      D.embedFrame.style.opacity = '0';
+      D.embedFrame.src = stream.url;
+      setTimeout(() => D.embedFrame.style.opacity = '1', 100);
+      return;
+    }
+
+    D.host.style.display = 'block';
+    const v = document.createElement('video');
+    v.style.cssText = 'width:100%;height:100%;background:#000;';
+    v.controls = false;
+    v.autoplay = true;
+    v.playsInline = true;
+    D.host.appendChild(v);
+    curPlayer = v;
+    instances.push(v);
+
+    v.src = stream.url;
+    try {
+      await v.play();
+      isPlaying = true;
+      updatePlayIcon();
+    } catch (e) {
+      console.warn(e);
+    }
+  }
+
+  function clearHost() {
+    instances.forEach(p => {
+      try {
+        if (p instanceof HTMLMediaElement) { p.pause(); p.src = ''; }
+        if (typeof p.destroy === 'function') p.destroy();
+      } catch {}
+    });
+    instances = [];
+    D.host.innerHTML = '';
+    curPlayer = null;
+  }
+
+  async function go(idx) {
+    if (!streams.length) return;
+    curIdx = Math.max(0, Math.min(idx, streams.length-1));
+    curStream = streams[curIdx];
+    playGen++;
+    buildStreamPills();
+    updateActivePill();
+    await playStream(curStream, playGen);
+  }
+
+  function switchNext() {
+    go((curIdx + 1) % streams.length);
+    toast('→ Next stream');
+  }
+
+  function refresh() {
+    if (!curStream) return;
+    toast('↻ Refreshing...');
+    go(curIdx);
+  }
+
+  function toggleFullscreen() {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else if (D.stage.requestFullscreen) D.stage.requestFullscreen();
+  }
+
+  function togglePiP() {
+    if (!curPlayer || !(curPlayer instanceof HTMLVideoElement)) return toast('PiP not available');
+    document.pictureInPictureElement ? document.exitPictureInPicture() : curPlayer.requestPictureInPicture().catch(() => toast('PiP unavailable'));
+  }
+
+  function showHelp() { D.scOverlay.style.display = 'flex'; }
+  function closeHelp() { D.scOverlay.style.display = 'none'; }
+
+  function handleErrorRetry() { hideError(); go(curIdx); }
+  function handleErrorFallback() { hideError(); toast('Backup loaded'); }
+
+  function initGestures() {
+    let startX = 0, startY = 0;
+    D.stage.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      showControls();
+    }, {passive: true});
+
+    D.stage.addEventListener('touchend', e => {
+      if (!startX) return;
+      const dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 80) {
+        if (dx < -60) switchNext();
+        else if (dx > 60) refresh();
+      } else {
+        togglePlay();
+      }
+      startX = 0;
+    }, {passive: true});
+
+    D.stage.addEventListener('click', () => {
+      showControls();
+      if (!isPlaying) D.bigPlay.classList.add('show');
+      else D.bigPlay.classList.remove('show');
+    });
+
+    D.bigPlay.addEventListener('click', e => {
+      e.stopImmediatePropagation();
+      togglePlay();
+      D.bigPlay.classList.remove('show');
+    });
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.target !== document.body) return;
+    switch(e.key.toLowerCase()) {
+      case ' ': e.preventDefault(); togglePlay(); break;
+      case 's': switchNext(); break;
+      case 'r': refresh(); break;
+      case 'f': toggleFullscreen(); break;
+      case 'p': togglePiP(); break;
+      case '?': showHelp(); break;
+    }
+  });
+
+  // Init
+  (async () => {
+    // Demo streams — replace with your real ones
+    streams = [
+      {name: 'HD 1', url: 'https://test-streams.mux.dev/x264_720p.m3u8', type: 'hls'},
+      {name: 'Full HD', url: 'https://test-streams.mux.dev/x264_1080p.m3u8', type: 'hls'},
+      {name: 'Backup', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny_720p.mp4', type: 'native'}
+    ];
+
+    buildStreamPills();
+    initGestures();
+    initCast();
+    initAirPlay();
+
+    const meta = await fetchPostMetadata();
+    setHeaderInfo(meta.title);
+
+    setTimeout(() => showControls(), 600);
+    await go(0);
+  })();
+
+  return {
+    go, switchNext, refresh, toggleFullscreen, togglePiP,
+    showHelp, closeHelp, handleErrorRetry, handleErrorFallback,
+    retryEmbed: () => {}, nextEmbedSource: () => {},
+    togglePlay, seek
+  };
+})();
 </script>
-
 </body>
 </html>
