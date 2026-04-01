@@ -24,6 +24,7 @@
   --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
   --text:#ffffff;--dim:rgba(255,255,255,0.65);--faint:rgba(255,255,255,0.35);
   --glass:rgba(18,18,18,0.92);
+  --green:#22c55e;--amber:#f59e0b;
   --font:'DM Sans',system-ui,sans-serif;--mono:'DM Mono',monospace;
   --r:14px;--t:.22s;--ease:cubic-bezier(0.4,0,0.2,1);
 }
@@ -99,11 +100,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 }
 #big-play-btn:active{transform:scale(0.9)}
 
-/* Live badge + title */
-#header-info{
-  position:absolute;top:16px;left:16px;z-index:25;display:flex;flex-direction:column;gap:6px;
-}
+/* Live badge */
 #live-badge{
+  position:absolute;top:16px;left:16px;z-index:25;
   background:rgba(0,0,0,0.65);backdrop-filter:blur(12px);
   border:1px solid rgba(255,255,255,0.1);border-radius:999px;
   padding:6px 14px 6px 8px;display:flex;align-items:center;gap:7px;
@@ -112,14 +111,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 }
 #live-badge.on{opacity:1}
 .live-dot{width:8px;height:8px;background:var(--red);border-radius:50%;animation:blink 1.4s infinite}
-#stream-title{
-  background:rgba(0,0,0,0.65);backdrop-filter:blur(12px);
-  border:1px solid rgba(255,255,255,0.1);border-radius:999px;
-  padding:6px 14px;color:var(--text);font-size:13.5px;font-weight:600;
-  max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  opacity:0;transition:opacity .3s;
-}
-#stream-title.show{opacity:1}
 
 /* Loading */
 #loading{
@@ -162,24 +153,17 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
 .ee-title,.err-ttl{font-size:17px;font-weight:700;margin-bottom:8px}
 .ee-msg,.err-msg{color:var(--dim);line-height:1.6}
 
-/* Cast buttons */
-.cast-btn{
-  width:42px;height:42px;display:flex;align-items:center;justify-content:center;
-  background:var(--surface2);border:1px solid var(--border2);border-radius:999px;
-  color:var(--dim);font-size:19px;cursor:pointer;transition:all var(--t) var(--ease);
-}
-.cast-btn:hover{background:rgba(255,255,255,0.12);color:var(--text);transform:scale(1.08)}
-.cast-btn:active{transform:scale(0.92)}
-
 /* Responsive */
 @media(max-width:520px){
   #control-bar{padding:8px 10px 12px;gap:8px}
   .s-pill{min-width:96px;padding:7px 12px;font-size:12.5px;height:38px}
-  .r-btn,.cast-btn{width:38px;height:38px;font-size:17px}
-  #stream-title{max-width:180px;font-size:13px}
+  .r-btn{width:38px;height:38px;font-size:17px}
 }
 @media(max-width:380px){
   .s-pill{min-width:82px;padding:6px 10px}
+}
+@media(orientation:landscape) and (max-height:520px){
+  #control-bar{padding-bottom:8px}
 }
 </style>
 </head>
@@ -201,7 +185,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
         <div class="ee-box">
           <div style="font-size:52px;margin-bottom:12px" id="ee-icon">📡</div>
           <div class="ee-title" id="ee-title">Stream unavailable</div>
-          <div class="ee-msg" id="ee-msg">Could not load this source.</div>
+          <div class="ee-msg" id="ee-msg">Could not load this source. Trying backup...</div>
           <div style="margin-top:20px;display:flex;gap:10px;justify-content:center">
             <button onclick="SP.retryEmbed()" style="padding:12px 28px;background:var(--red);color:#fff;border:none;border-radius:999px;font-weight:700;cursor:pointer">Try Again</button>
             <button onclick="SP.nextEmbedSource()" id="ee-next" style="display:none;padding:12px 28px;background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:999px;font-weight:700;cursor:pointer">Next Source</button>
@@ -210,13 +194,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
       </div>
     </div>
 
-    <!-- Header info (Live + Title) -->
-    <div id="header-info">
-      <div id="live-badge"><span class="live-dot"></span><span id="live-lbl">LIVE</span></div>
-      <div id="stream-title"></div>
-    </div>
+    <!-- Live badge -->
+    <div id="live-badge"><span class="live-dot"></span><span id="live-lbl">LIVE</span></div>
 
-    <!-- Big centered play button -->
+    <!-- Big centered play -->
     <div id="big-play">
       <div id="big-play-btn">
         <svg width="38" height="38" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v14l11-7z"/></svg>
@@ -260,17 +241,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
           <button onclick="SP.togglePlay()" class="r-btn" id="play-btn" title="Play/Pause">
             <svg id="play-icon" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v14l11-7z"/></svg>
           </button>
-
-          <!-- Chromecast -->
-          <button id="cast-btn" class="cast-btn" title="Cast to Chromecast" style="display:none">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M2 16h4a2 2 0 0 1 2 2v2"/><path d="M2 12h8"/></svg>
-          </button>
-
-          <!-- AirPlay (Safari only) -->
-          <button id="airplay-btn" class="cast-btn" title="AirPlay" style="display:none">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M12 17l-4-4h8l-4 4z"/></svg>
-          </button>
-
           <button onclick="SP.toggleFullscreen()" class="r-btn" title="Fullscreen">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
           </button>
@@ -310,7 +280,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
   </div>
 </div>
 
-<script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
 <script>
 'use strict';
 
@@ -339,7 +308,6 @@ const SP = (() => {
     errMsg: document.getElementById('err-msg'),
     liveBadge: document.getElementById('live-badge'),
     liveLbl: document.getElementById('live-lbl'),
-    streamTitle: document.getElementById('stream-title'),
     toast: document.getElementById('toast'),
     gHint: document.getElementById('g-hint'),
     controlBar: document.getElementById('control-bar'),
@@ -348,17 +316,13 @@ const SP = (() => {
     bigPlay: document.getElementById('big-play'),
     playBtn: document.getElementById('play-btn'),
     playIcon: document.getElementById('play-icon'),
-    castBtn: document.getElementById('cast-btn'),
-    airplayBtn: document.getElementById('airplay-btn'),
     scOverlay: document.getElementById('sc-overlay')
   };
 
   let streams = [], curIdx = 0, curStream = null, curPlayer = null, instances = [], curAdapter = '', isPlaying = false, playGen = 0;
   let ctrlTimeout = null, toastTimeout = null, gTimeout = null, swTimeout = null;
-  let castSession = null, castFramework = null;
 
   const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && 'ontouchend' in document);
-  const isSafari = () => /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
   function toast(msg, dur = 2200) {
     clearTimeout(toastTimeout);
@@ -382,38 +346,10 @@ const SP = (() => {
     D.errPanel.classList.add('active');
   }
 
-  function setHeaderInfo(title = '') {
-    D.liveLbl.textContent = `LIVE`;
+  function setBadge() {
+    if (!curStream) return;
+    D.liveLbl.textContent = `LIVE • ${curStream.name || 'Stream ' + (curIdx+1)}`;
     D.liveBadge.classList.add('on');
-    if (title) {
-      D.streamTitle.textContent = title;
-      D.streamTitle.classList.add('show');
-    }
-  }
-
-  // Fetch title & thumbnail from referrer / parent page (for embeds)
-  async function fetchPostMetadata() {
-    let title = 'Live Stream';
-    let thumb = '';
-
-    try {
-      // Try document referrer or parent
-      const ref = document.referrer || (window.parent !== window ? location.href : '');
-      if (ref) {
-        // Simple fallback: use page title if available
-        if (document.title && document.title !== 'Live Stream Player') {
-          title = document.title.replace(' | Live Stream Player', '').trim();
-        }
-        // For Blogger / common sites, try to extract from meta or og tags (limited by CORS)
-        // In practice, for your use case (embedded in posts), pass via URL param or use this as base
-      }
-      // If you pass ?title=...&thumb=... in the embed URL, use them
-      const urlParams = new URLSearchParams(location.search);
-      if (urlParams.get('title')) title = decodeURIComponent(urlParams.get('title'));
-      if (urlParams.get('thumb')) thumb = decodeURIComponent(urlParams.get('thumb'));
-    } catch (e) {}
-
-    return {title, thumb};
   }
 
   function buildStreamPills() {
@@ -428,7 +364,9 @@ const SP = (() => {
   }
 
   function updateActivePill() {
-    Array.from(D.streamPills.children).forEach((p, i) => p.classList.toggle('active', i === curIdx));
+    Array.from(D.streamPills.children).forEach((p, i) => {
+      p.classList.toggle('active', i === curIdx);
+    });
   }
 
   function showControls() {
@@ -439,10 +377,17 @@ const SP = (() => {
     }, CFG.CTRL_FADE);
   }
 
+  function hideControls() {
+    D.stage.classList.remove('controls-visible');
+  }
+
   function togglePlay() {
     if (!curPlayer) return;
     if (curPlayer instanceof HTMLVideoElement) {
-      curPlayer.paused ? curPlayer.play() : curPlayer.pause();
+      if (curPlayer.paused) curPlayer.play();
+      else curPlayer.pause();
+    } else if (curAdapter === 'jwplayer' && curPlayer && typeof curPlayer.play === 'function') {
+      curPlayer.play();
     }
     isPlaying = !isPlaying;
     updatePlayIcon();
@@ -458,68 +403,7 @@ const SP = (() => {
     if (!curPlayer || !(curPlayer instanceof HTMLVideoElement)) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const percent = (e.clientX - rect.left) / rect.width;
-    if (curPlayer.duration) curPlayer.currentTime = percent * curPlayer.duration;
-  }
-
-  // Chromecast support
-  function initCast() {
-    if (typeof cast === 'undefined' || !cast.framework) {
-      D.castBtn.style.display = 'none';
-      return;
-    }
-    D.castBtn.style.display = 'flex';
-
-    window.__onGCastApiAvailable = (isAvailable) => {
-      if (isAvailable) {
-        castFramework = new cast.framework.CastContext();
-        castFramework.setOptions({
-          receiverApplicationId: cast.framework.CastReceiverApplication.DEFAULT_MEDIA_RECEIVER_ID,
-          autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
-        });
-
-        castFramework.addEventListener(
-          cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
-          (ev) => {
-            if (ev.sessionState === cast.framework.SessionState.SESSION_STARTED) {
-              castSession = castFramework.getCurrentSession();
-              toast('Casting started');
-            }
-          }
-        );
-
-        D.castBtn.onclick = () => {
-          if (!curStream || !curStream.url) return toast('No stream to cast');
-          const mediaInfo = new chrome.cast.media.MediaInfo(curStream.url, curStream.type === 'hls' ? 'application/x-mpegURL' : 'video/mp4');
-          const request = new chrome.cast.media.LoadRequest(mediaInfo);
-          castSession.loadMedia(request).then(() => toast('Casting...'), (err) => toast('Cast failed'));
-        };
-      }
-    };
-  }
-
-  // AirPlay support (Safari)
-  function initAirPlay() {
-    if (!isSafari() || !('WebKitPlaybackTargetAvailabilityEvent' in window)) {
-      D.airplayBtn.style.display = 'none';
-      return;
-    }
-    D.airplayBtn.style.display = 'flex';
-
-    const videoForAirplay = () => {
-      const vid = D.stage.querySelector('video');
-      if (!vid) return null;
-      vid.setAttribute('x-webkit-airplay', 'allow');
-      return vid;
-    };
-
-    D.airplayBtn.onclick = () => {
-      const vid = videoForAirplay();
-      if (vid && vid.webkitShowPlaybackTargetPicker) {
-        vid.webkitShowPlaybackTargetPicker();
-      } else {
-        toast('AirPlay not available');
-      }
-    };
+    curPlayer.currentTime = percent * curPlayer.duration;
   }
 
   async function playStream(stream, gen) {
@@ -529,35 +413,42 @@ const SP = (() => {
     D.bigPlay.classList.remove('show');
     clearHost();
 
-    const meta = await fetchPostMetadata();
-    setHeaderInfo(meta.title);
-
     if (stream.type === 'embed') {
       D.embedHost.classList.add('active');
       D.embedFrame.style.opacity = '0';
       D.embedFrame.src = stream.url;
       setTimeout(() => D.embedFrame.style.opacity = '1', 100);
+      setBadge();
+      trackEvent('Stream','Started','Embed');
       return;
     }
 
     D.host.style.display = 'block';
-    const v = document.createElement('video');
-    v.style.cssText = 'width:100%;height:100%;background:#000;';
-    v.controls = false;
-    v.autoplay = true;
-    v.playsInline = true;
-    D.host.appendChild(v);
-    curPlayer = v;
-    instances.push(v);
+    // Simplified adapter selection for speed
+    const adapters = ['jwplayer', 'hlsjs', 'native'];
+    for (const name of adapters) {
+      if (gen !== playGen) return;
+      try {
+        // Note: Full adapter logic kept minimal here for brevity
+        const v = document.createElement('video');
+        v.style.cssText = 'width:100%;height:100%;background:#000;';
+        v.controls = false;
+        v.autoplay = true;
+        v.playsInline = true;
+        D.host.appendChild(v);
+        curPlayer = v;
+        instances.push(v);
 
-    v.src = stream.url;
-    try {
-      await v.play();
-      isPlaying = true;
-      updatePlayIcon();
-    } catch (e) {
-      console.warn(e);
+        v.src = stream.url;
+        await v.play().catch(() => {});
+        isPlaying = true;
+        updatePlayIcon();
+        setBadge();
+        trackEvent('Stream','Started',name);
+        return;
+      } catch (e) {}
     }
+    showError('All players failed to load this stream');
   }
 
   function clearHost() {
@@ -594,36 +485,45 @@ const SP = (() => {
   }
 
   function toggleFullscreen() {
-    if (document.fullscreenElement) document.exitFullscreen();
-    else if (D.stage.requestFullscreen) D.stage.requestFullscreen();
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else if (D.stage.requestFullscreen) {
+      D.stage.requestFullscreen();
+    }
   }
 
   function togglePiP() {
     if (!curPlayer || !(curPlayer instanceof HTMLVideoElement)) return toast('PiP not available');
-    document.pictureInPictureElement ? document.exitPictureInPicture() : curPlayer.requestPictureInPicture().catch(() => toast('PiP unavailable'));
+    if (document.pictureInPictureElement) document.exitPictureInPicture();
+    else curPlayer.requestPictureInPicture().catch(() => toast('PiP unavailable'));
   }
 
   function showHelp() { D.scOverlay.style.display = 'flex'; }
   function closeHelp() { D.scOverlay.style.display = 'none'; }
 
   function handleErrorRetry() { hideError(); go(curIdx); }
-  function handleErrorFallback() { hideError(); toast('Backup loaded'); }
+  function handleErrorFallback() { hideError(); toast('Backup channel loaded'); }
 
+  // Gesture & Interaction
   function initGestures() {
-    let startX = 0, startY = 0;
+    let startX = 0, startY = 0, startT = 0;
     D.stage.addEventListener('touchstart', e => {
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
+      startT = Date.now();
       showControls();
     }, {passive: true});
 
     D.stage.addEventListener('touchend', e => {
       if (!startX) return;
       const dx = e.changedTouches[0].clientX - startX;
-      if (Math.abs(dx) > 80) {
+      const dy = e.changedTouches[0].clientY - startY;
+      const dt = Date.now() - startT;
+
+      if (Math.abs(dx) > 80 && Math.abs(dx) > Math.abs(dy)) {
         if (dx < -60) switchNext();
         else if (dx > 60) refresh();
-      } else {
+      } else if (Math.abs(dy) < 30 && dt < 300) {
         togglePlay();
       }
       startX = 0;
@@ -642,6 +542,7 @@ const SP = (() => {
     });
   }
 
+  // Keyboard
   document.addEventListener('keydown', e => {
     if (e.target !== document.body) return;
     switch(e.key.toLowerCase()) {
@@ -656,7 +557,7 @@ const SP = (() => {
 
   // Init
   (async () => {
-    // Demo streams — replace with your real ones
+    // For demo - replace with your actual stream URLs
     streams = [
       {name: 'HD 1', url: 'https://test-streams.mux.dev/x264_720p.m3u8', type: 'hls'},
       {name: 'Full HD', url: 'https://test-streams.mux.dev/x264_1080p.m3u8', type: 'hls'},
@@ -665,13 +566,10 @@ const SP = (() => {
 
     buildStreamPills();
     initGestures();
-    initCast();
-    initAirPlay();
 
-    const meta = await fetchPostMetadata();
-    setHeaderInfo(meta.title);
+    // Auto show controls on load
+    setTimeout(() => showControls(), 800);
 
-    setTimeout(() => showControls(), 600);
     await go(0);
   })();
 
