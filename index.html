@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Janzi Band – Ssewa Ssewa Experience</title>
+<title>Janzi Band – Ssewa Ssewa</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Cinzel+Decorative:wght@700&family=Raleway:wght@300;400;600&display=swap');
 
@@ -32,7 +32,6 @@
     display: flex; align-items: center;
   }
 
-  /* Animation stagger */
   .slide:nth-child(1)  { animation-delay: 0s; }
   .slide:nth-child(2)  { animation-delay: calc(1 * var(--slide-duration)); }
   .slide:nth-child(3)  { animation-delay: calc(2 * var(--slide-duration)); }
@@ -55,190 +54,202 @@
   .slide:nth-child(20){ animation-delay: calc(19* var(--slide-duration)); }
 
   @keyframes slideLife {
-    0% { opacity: 0; } 5% { opacity: 1; }
-    90% { opacity: 1; } 98% { opacity: 0; } 100% { opacity: 0; }
+    0% { opacity: 0; } 
+    5% { opacity: 1; }
+    90% { opacity: 1; } 
+    98% { opacity: 0; } 
+    100% { opacity: 0; }
   }
 
-  /* Image on LEFT - high resolution */
+  /* IMAGE ON THE RIGHT */
   .slide-bg {
-    position: absolute; left: 0; top: 0;
+    position: absolute; right: 0; top: 0;
     width: 58%; height: 100%;
     background-size: cover; background-position: center;
     filter: brightness(0.78) saturate(1.25);
     animation: subtleZoom 14s ease-in-out infinite alternate;
   }
 
-  @keyframes subtleZoom { from { transform: scale(1.02); } to { transform: scale(1.09); } }
+  @keyframes subtleZoom { 
+    from { transform: scale(1.02); } 
+    to   { transform: scale(1.09); } 
+  }
 
-  /* Text Panel on RIGHT */
+  /* TEXT PANEL ON THE LEFT - BIGGER TEXT */
   .content-panel {
     position: relative; z-index: 10;
     width: 42%; height: 100%;
-    padding: 85px 75px 85px 65px;
-    background: rgba(10, 4, 2, 0.85);
+    padding: 90px 70px 90px 80px;
+    background: rgba(10, 4, 2, 0.88);
     display: flex; flex-direction: column; justify-content: center;
-    border-left: 8px solid var(--gold);
-    color: var(--cream);
+    border-right: 8px solid var(--gold);
   }
 
   .brand-tag {
     font-family: 'Cinzel Decorative', serif;
-    font-size: 14px; letter-spacing: 5px;
+    font-size: 15px; letter-spacing: 5px;
     color: var(--gold); text-transform: uppercase;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
   }
 
   .slide-headline {
     font-family: 'Playfair Display', serif;
-    font-size: 43px; font-weight: 700;
-    line-height: 1.12; color: var(--cream);
-    margin-bottom: 22px;
+    font-size: 48px; 
+    font-weight: 700;
+    line-height: 1.1; 
+    color: var(--cream);
+    margin-bottom: 26px;
   }
   .slide-headline em { font-style: italic; color: var(--gold); }
 
   .slide-body {
-    font-size: 16.2px; line-height: 1.68;
-    margin-bottom: 30px; opacity: 0.95;
-  }
-
-  .extra-info {
-    font-size: 15px; line-height: 1.6;
-    color: rgba(245,230,200,0.85);
+    font-size: 18.5px; 
+    line-height: 1.65;
+    color: rgba(245,230,200,0.95);
     margin-bottom: 28px;
   }
 
+  .extra-info {
+    font-size: 17px; 
+    line-height: 1.6;
+    color: rgba(245,230,200,0.88);
+    margin-bottom: 32px;
+  }
+
+  .phone-numbers {
+    font-size: 28px; 
+    font-weight: 700;
+    color: var(--gold);
+    margin: 20px 0 28px 0;
+    line-height: 1.3;
+  }
+
   .cta-row {
-    display: flex; flex-wrap: wrap; gap: 14px;
+    display: flex; flex-wrap: wrap; gap: 16px;
     margin-bottom: 32px;
   }
   .cta-chip {
-    padding: 12px 26px; border: 2px solid var(--gold);
-    color: var(--gold); font-size: 13.5px;
-    font-weight: 600; letter-spacing: 1.6px;
-    text-transform: uppercase; background: transparent;
+    padding: 14px 28px; 
+    border: 2px solid var(--gold);
+    color: var(--gold); 
+    font-size: 14.5px;
+    font-weight: 600; 
+    letter-spacing: 1.6px;
+    text-transform: uppercase; 
+    background: transparent;
   }
-  .cta-chip.filled { background: var(--gold); color: var(--earth); }
+  .cta-chip.filled { 
+    background: var(--gold); 
+    color: var(--earth); 
+  }
 
   .contact-strip {
-    border-top: 1px solid rgba(212,160,23,0.35);
-    padding-top: 24px; display: grid; gap: 11px;
+    border-top: 1px solid rgba(212,160,23,0.4);
+    padding-top: 26px; 
+    display: grid; 
+    gap: 12px;
   }
   .contact-item {
-    display: flex; align-items: center; gap: 12px;
-    font-size: 15px;
+    display: flex; 
+    align-items: center; 
+    gap: 14px;
+    font-size: 16.5px;
   }
   .contact-item .icon {
-    width: 32px; height: 32px; background: var(--gold);
-    color: var(--earth); border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 15px; font-weight: bold;
+    width: 34px; height: 34px; 
+    background: var(--gold);
+    color: var(--earth); 
+    border-radius: 50%;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    font-size: 16px; 
+    font-weight: bold;
   }
 
   /* Top Bar */
   .top-bar {
-    position: fixed; top: 18px; left: 18px; right: 18px; z-index: 100;
-    height: 62px; padding: 0 32px;
-    background: rgba(10,4,2,0.88); border-bottom: 2px solid var(--gold);
+    position: fixed; top: 20px; left: 20px; right: 20px; z-index: 100;
+    height: 64px; padding: 0 35px;
+    background: rgba(10,4,2,0.9); 
+    border-bottom: 3px solid var(--gold);
     display: flex; align-items: center; justify-content: space-between;
   }
-  .logo-text { font-family: 'Cinzel Decorative', serif; font-size: 29px; color: var(--gold); letter-spacing: 4px; }
+  .logo-text { 
+    font-family: 'Cinzel Decorative', serif; 
+    font-size: 32px; 
+    color: var(--gold); 
+    letter-spacing: 5px; 
+  }
 
   /* Ticker */
   .ticker-bar {
-    position: fixed; bottom: 18px; left: 18px; right: 18px; z-index: 100;
-    height: 42px; background: rgba(212,160,23,0.95);
+    position: fixed; bottom: 20px; left: 20px; right: 20px; z-index: 100;
+    height: 44px; background: rgba(212,160,23,0.96);
     display: flex; align-items: center; overflow: hidden;
   }
   .ticker-label {
     background: var(--deep-red); color: white;
-    padding: 0 26px; font-family: 'Cinzel Decorative', serif;
-    font-size: 12px; letter-spacing: 3px; height: 100%; display: flex; align-items: center;
+    padding: 0 28px; font-family: 'Cinzel Decorative', serif;
+    font-size: 13px; letter-spacing: 3px; 
+    height: 100%; display: flex; align-items: center;
   }
   .ticker-text {
-    flex: 1; white-space: nowrap; font-size: 14.8px; font-weight: 600;
-    color: var(--earth); animation: tickerScroll 27s linear infinite;
+    flex: 1; white-space: nowrap; font-size: 15.5px; font-weight: 600;
+    color: var(--earth); animation: tickerScroll 28s linear infinite;
   }
-  @keyframes tickerScroll { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+  @keyframes tickerScroll { 
+    from { transform: translateX(100%); } 
+    to { transform: translateX(-100%); } 
+  }
 </style>
 </head>
 <body>
 
 <div class="top-bar">
   <div class="logo-text">JANZI</div>
-  <div style="color:var(--gold); font-size:13.5px; letter-spacing:4px;">EAST AFRICAN MUSIC EXPERIENCE</div>
+  <div style="color:var(--gold); font-size:14px; letter-spacing:4px;">EAST AFRICAN MUSIC EXPERIENCE</div>
 </div>
 
 <div class="slideshow">
 
-  <!-- SLIDE 1 -->
+  <!-- Example Slide 1 - Replace/add more slides with your other Blogger image URLs -->
   <div class="slide">
     <div class="slide-bg" style="background-image:url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgyQ8Yng53-RkicHJH0ec842fJDyRtroPKUcnCWxWEs-C_FhzHok4wG0I383_laYca8yimWXz8rWUssjd5d1s_r5hRShGL1suiUzQ6QeaIWaUX93KHguoXaOIJBhmisFQZvpW3lMdpLP5zgtptQoHiulfkGayTnywmtqzz9UGNnt8C8SDEqbUMSPTJpbUYy/s6720/IMG_7776.jpeg')"></div>
     <div class="content-panel">
       <div class="brand-tag">Janzi Band • Uganda</div>
       <div class="slide-headline">Where <em>Ancient Strings</em> Meet Modern Sound</div>
-      <div class="slide-body">Experience the revolutionary Janzi — a 22-string masterpiece that fuses traditional East African harp with contemporary innovation.</div>
-      <div class="extra-info">Created by Ssewa Ssewa, Ugandan multi-instrumentalist, singer, and inventor of the Janzi instrument.</div>
-      <div class="cta-row">
-        <div class="cta-chip filled">Learn the Janzi</div>
-        <div class="cta-chip">Book Live Performance</div>
+      <div class="slide-body">Experience the revolutionary Janzi instrument — a masterpiece of East African craftsmanship that redefines music for the world stage.</div>
+      <div class="extra-info">Created by Ssewa Ssewa, renowned Ugandan musician and multi-instrumentalist.</div>
+      
+      <div class="phone-numbers">
+        📞 0773 033 240<br>
+        📞 0758 684 947<br>
+        📞 0787 386 057
       </div>
-      <div class="contact-strip">
-        <div class="contact-item"><div class="icon">📞</div>0773 033 240</div>
-        <div class="contact-item"><div class="icon">🌐</div><a href="https://janzimusic.com" style="color:inherit">janzimusic.com</a></div>
-      </div>
-    </div>
-  </div>
 
-  <!-- SLIDE 2 -->
-  <div class="slide">
-    <div class="slide-bg" style="background-image:url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg7TLBRzYAwgBMNgyqSh_IrtxfgIuihWXrvWWZFdubjO2WQdXfwE_pUiG_FGQbl9QNumbHkv2d5YZEuZNiA5jcf2I8uqAkZxsAIIVgAYXGwUCIta9Uy_E6Ssma5Qo3xpa1jDu-u3sQJpBnolCOIoU-sbCdMF960WaaetImxgTNdP6KVThww1n7cZZl1dU0G/s5568/IMG_3317.jpeg')"></div>
-    <div class="content-panel">
-      <div class="brand-tag">Ssewa Ssewa</div>
-      <div class="slide-headline"><em>Master Multi-Instrumentalist</em> & Inventor</div>
-      <div class="slide-body">James Ssewakiryanga (Ssewa Ssewa), founder of Janzi Band. Son of a traditional drummer and dancer, self-taught virtuoso blending Ugandan roots with global sounds.</div>
-      <div class="extra-info">Inventor of the Janzi instrument • Musical director since 2009 • Performer on adungu, endongo, endingidi & more.</div>
       <div class="cta-row">
-        <div class="cta-chip filled">Watch Performances</div>
-        <div class="cta-chip">Book Ssewa Ssewa</div>
+        <div class="cta-chip filled">Learn Janzi</div>
+        <div class="cta-chip">Book Event</div>
       </div>
+      
       <div class="contact-strip">
-        <div class="contact-item"><div class="icon">📞</div>0773 033 240</div>
+        <div class="contact-item"><div class="icon">🌐</div><a href="https://janzimusic.com" style="color:inherit">janzimusic.com</a></div>
         <div class="contact-item"><div class="icon">📸</div>@janzi_band</div>
       </div>
     </div>
   </div>
 
-  <!-- Add more slides following the same pattern. Example for one more: -->
-  <!-- SLIDE 3 -->
-  <div class="slide">
-    <div class="slide-bg" style="background-image:url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjNZ64tvcfqXzcQv-86Ewl4V6I1JnR83w5UsOvMbQbLQ__TvvFpLchiefOigcUDiiM0LdIF_4NK0KvKSgraS1HXekzYIlOyNudCSOrNWk79iM7g166Sh_HWfrHRqVCvjDZtW1BRuVzG39dqAzdH_e-RlZKRtLC6aRhMtAM5kJdrmsZ0rJJl07Zg9l8pGVkK/s5079/IMG_2945.jpeg')"></div>
-    <div class="content-panel">
-      <div class="brand-tag">Live Fusion Experience</div>
-      <div class="slide-headline">Ssewa Ssewa & Janzi Band</div>
-      <div class="slide-body">Feel the power of East African heritage fused with modern beats. Perfect for weddings, festivals, corporate events, and cultural celebrations.</div>
-      <div class="extra-info">Ssewa Ssewa – Ugandan musician, multi-instrumentalist & visionary behind the revolutionary Janzi harp.</div>
-      <div class="cta-row">
-        <div class="cta-chip filled">Book For Your Event</div>
-      </div>
-      <div class="contact-strip">
-        <div class="contact-item"><div class="icon">📞</div>0773 033 240</div>
-        <div class="contact-item"><div class="icon">🌐</div><a href="https://janzimusic.com">janzimusic.com</a></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Continue adding the remaining slides (use the other Blogger URLs you provided). 
-       You can duplicate the structure and change the background-image URL + headline/body text as needed. -->
+  <!-- Duplicate the above <div class="slide"> block for all other images and change the background-image URL + text as needed -->
 
 </div>
 
 <div class="ticker-bar">
   <div class="ticker-label">JANZI BAND</div>
   <div class="ticker-text">
-    🎵 Ssewa Ssewa – Ugandan Multi-Instrumentalist & Inventor of the Janzi • 
-    📞 Book Now: 0773 033 240 • 🌐 janzimusic.com • 
-    📸 @janzi_band • Weddings • Festivals • Corporate • Private Sessions • 
-    ✨ Ancient African Strings Meet Modern Sound • 
+    🎵 Ssewa Ssewa – Ugandan Multi-Instrumentalist & Janzi Inventor • 
+    Call Now: 0773 033 240 | 0758 684 947 | 0787 386 057 • 
+    🌐 janzimusic.com • @janzi_band • Weddings • Festivals • Corporate Events
   </div>
 </div>
 
