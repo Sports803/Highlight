@@ -2,752 +2,377 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Sports 803 Player</title>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
-
-<script src="https://cdn.jwplayer.com/libraries/IDzF9Zmk.js"></script>
-<script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Janzi Band – TV Advertisement</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Cinzel+Decorative:wght@700&family=Raleway:wght@300;400;600&display=swap');
 
-:root{
-  --red:#e5181a;
-  --red2:#ff2d2f;
-  --bg:#0a0a0a;
-  --surface:#111;
-  --surface2:#1a1a1a;
-  --surface3:#222;
-  --glass:rgba(10,10,10,.85);
-  --text:#fff;
-  --dim:rgba(255,255,255,.55);
-  --border:rgba(255,255,255,.08);
-  --nav-h:60px;
-  --top-h:56px;
-}
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-html,body{
-  background:var(--bg);
-  font-family:'Barlow',sans-serif;
-  color:var(--text);
-  overflow:hidden;
-  height:100%;
-  width:100%;
-  position:fixed;
-}
+  :root {
+    --gold: #D4A017;
+    --deep-red: #8B1A1A;
+    --kente-orange: #E8651A;
+    --earth: #3B1F0A;
+    --cream: #F5E6C8;
+    --green: #2D5A27;
+    --slide-duration: 10s;
+  }
 
-/* ── PLAYER ─────────────────────────────── */
-#player-wrap{
-  position:fixed;
-  inset:0;
-  bottom:var(--nav-h);
-}
-#player{width:100%;height:100%}
+  html, body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: #000;
+    font-family: 'Raleway', sans-serif;
+  }
 
-/* ── LOADING SCREEN ─────────────────────── */
-#loading{
-  position:absolute;inset:0;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  background:var(--bg);
-  z-index:30;
-  gap:18px;
-}
-.logo-badge{
-  display:flex;align-items:center;gap:8px;
-}
-.logo-s{
-  width:42px;height:42px;
-  background:var(--red);
-  border-radius:10px;
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Barlow Condensed',sans-serif;
-  font-weight:900;font-size:22px;letter-spacing:-1px;
-}
-.logo-text{
-  font-family:'Barlow Condensed',sans-serif;
-  font-weight:700;font-size:20px;letter-spacing:.5px;
-  line-height:1.1;
-}
-.logo-text span{color:var(--red)}
-.spinner{
-  width:36px;height:36px;
-  border:3px solid var(--surface3);
-  border-top-color:var(--red);
-  border-radius:50%;
-  animation:spin .8s linear infinite;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
-#loading p{color:var(--dim);font-size:13px}
+  /* Kente Border */
+  .kente-border {
+    position: fixed; 
+    inset: 0; 
+    z-index: 100;
+    pointer-events: none;
+    border: 18px solid transparent; /* slightly thinner for laptop */
+    border-image: repeating-linear-gradient(
+      90deg,
+      var(--gold) 0 18px,
+      var(--deep-red) 18px 36px,
+      var(--kente-orange) 36px 54px,
+      var(--green) 54px 72px,
+      var(--gold) 72px 90px
+    ) 18;
+  }
+  .kente-border::after {
+    content: '';
+    position: absolute; 
+    inset: 0;
+    border: 5px solid rgba(212,160,23,.35);
+  }
 
-/* ── TOP BAR ─────────────────────────────── */
-#topbar{
-  position:absolute;
-  top:0;left:0;right:0;
-  height:var(--top-h);
-  display:flex;align-items:center;gap:10px;
-  padding:0 12px;
-  background:linear-gradient(to bottom,rgba(0,0,0,.92) 0%,transparent 100%);
-  z-index:10;
-  transition:opacity .3s;
-}
-#topbar.hide{opacity:0;pointer-events:none}
+  /* Slideshow */
+  .slideshow {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
 
-#thumb{
-  width:34px;height:34px;
-  border-radius:6px;
-  object-fit:cover;
-  background:var(--surface3);
-  flex-shrink:0;
-  border:1.5px solid var(--border);
-}
-#title-wrap{flex:1;min-width:0}
-#title{
-  font-size:13px;font-weight:600;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-#subtitle{font-size:11px;color:var(--dim);margin-top:1px}
+  .slide {
+    position: absolute; 
+    inset: 0;
+    opacity: 0;
+    animation: slideLife var(--slide-duration) linear infinite;
+    display: flex; 
+    align-items: center; 
+    justify-content: flex-end;
+  }
 
-.live-dot{
-  display:flex;align-items:center;gap:5px;
-  background:var(--red);
-  padding:3px 8px;border-radius:4px;
-  font-family:'Barlow Condensed',sans-serif;
-  font-weight:700;font-size:11px;letter-spacing:.8px;
-  flex-shrink:0;
-}
-.live-dot::before{
-  content:'';width:6px;height:6px;
-  border-radius:50%;background:#fff;
-  animation:pulse 1.2s ease-in-out infinite;
-}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .slide:nth-child(1)  { animation-delay: 0s; }
+  .slide:nth-child(2)  { animation-delay: calc(1 * var(--slide-duration)); }
+  .slide:nth-child(3)  { animation-delay: calc(2 * var(--slide-duration)); }
+  .slide:nth-child(4)  { animation-delay: calc(3 * var(--slide-duration)); }
+  .slide:nth-child(5)  { animation-delay: calc(4 * var(--slide-duration)); }
+  .slide:nth-child(6)  { animation-delay: calc(5 * var(--slide-duration)); }
+  .slide:nth-child(7)  { animation-delay: calc(6 * var(--slide-duration)); }
+  .slide:nth-child(8)  { animation-delay: calc(7 * var(--slide-duration)); }
+  .slide:nth-child(9)  { animation-delay: calc(8 * var(--slide-duration)); }
+  .slide:nth-child(10){ animation-delay: calc(9 * var(--slide-duration)); }
+  .slide:nth-child(11){ animation-delay: calc(10* var(--slide-duration)); }
+  .slide:nth-child(12){ animation-delay: calc(11* var(--slide-duration)); }
+  .slide:nth-child(13){ animation-delay: calc(12* var(--slide-duration)); }
+  .slide:nth-child(14){ animation-delay: calc(13* var(--slide-duration)); }
+  .slide:nth-child(15){ animation-delay: calc(14* var(--slide-duration)); }
+  .slide:nth-child(16){ animation-delay: calc(15* var(--slide-duration)); }
+  .slide:nth-child(17){ animation-delay: calc(16* var(--slide-duration)); }
+  .slide:nth-child(18){ animation-delay: calc(17* var(--slide-duration)); }
+  .slide:nth-child(19){ animation-delay: calc(18* var(--slide-duration)); }
+  .slide:nth-child(20){ animation-delay: calc(19* var(--slide-duration)); }
 
-/* ── STREAM SWITCHER ─────────────────────── */
-#stream-bar{
-  position:absolute;
-  top:var(--top-h);left:0;right:0;
-  display:flex;gap:6px;
-  padding:8px 12px;
-  overflow-x:auto;
-  scrollbar-width:none;
-  background:linear-gradient(to bottom,rgba(0,0,0,.7) 0%,transparent 100%);
-  z-index:9;
-  transition:opacity .3s;
-}
-#stream-bar.hide{opacity:0;pointer-events:none}
-#stream-bar::-webkit-scrollbar{display:none}
+  @keyframes slideLife {
+    0%   { opacity: 0; transform: scale(1.05); }
+    3%   { opacity: 1; transform: scale(1.02); }
+    88%  { opacity: 1; transform: scale(1.00); }
+    97%  { opacity: 0; transform: scale(0.98); }
+    100% { opacity: 0; }
+  }
 
-.stream-pill{
-  padding:5px 14px;
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:20px;
-  font-size:12px;font-weight:600;
-  white-space:nowrap;cursor:pointer;
-  transition:all .2s;
-  flex-shrink:0;
-}
-.stream-pill.active{
-  background:var(--red);
-  border-color:var(--red);
-}
+  /* Background Image - Optimized for Laptop */
+  .slide-bg {
+    position: absolute; 
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    filter: brightness(0.65) saturate(1.15); /* brighter for laptop screens */
+    animation: subtleZoom 12s ease-in-out infinite alternate;
+  }
+  .slide-bg::after {
+    content: '';
+    position: absolute; 
+    inset: 0;
+    background: linear-gradient(
+      120deg,
+      rgba(139,26,26,.50) 0%,
+      rgba(0,0,0,.12) 50%,
+      rgba(45,90,39,.40) 100%
+    );
+  }
 
-/* ── CONTROLS (center tap zone) ──────────── */
-#tap-zone{
-  position:absolute;
-  inset:var(--top-h) 0 var(--nav-h) 0;
-  z-index:5;
-}
+  @keyframes subtleZoom {
+    from { transform: scale(1.03); }
+    to   { transform: scale(1.08); }
+  }
 
-/* ── CENTER CONTROLS (shown on tap) ──────── */
-#center-controls{
-  position:absolute;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  display:flex;align-items:center;gap:24px;
-  z-index:8;
-  opacity:0;pointer-events:none;
-  transition:opacity .25s;
-}
-#center-controls.show{opacity:1;pointer-events:all}
-.ctrl-btn{
-  width:52px;height:52px;
-  background:rgba(0,0,0,.65);
-  border-radius:50%;
-  backdrop-filter:blur(8px);
-  display:flex;align-items:center;justify-content:center;
-  font-size:22px;cursor:pointer;
-  border:1px solid rgba(255,255,255,.12);
-  transition:transform .15s,background .15s;
-}
-.ctrl-btn:active{transform:scale(.88);background:rgba(229,24,26,.5)}
-.ctrl-btn.main{
-  width:64px;height:64px;font-size:28px;
-  background:var(--red);border-color:var(--red2);
-}
+  /* Adinkra Decor */
+  .adinkra {
+    position: absolute;
+    font-size: 160px;
+    color: rgba(212,160,23,.13);
+    z-index: 1;
+    user-select: none;
+    animation: rotSpin 45s linear infinite;
+  }
+  .adinkra-tl { top: 50px; left: 50px; }
+  .adinkra-br { bottom: 50px; right: 50px; font-size: 120px; animation-direction: reverse; }
 
-/* ── BOTTOM NAV ──────────────────────────── */
-#bottom-nav{
-  position:fixed;
-  bottom:0;left:0;right:0;
-  height:var(--nav-h);
-  background:var(--glass);
-  backdrop-filter:blur(16px);
-  border-top:1px solid var(--border);
-  display:flex;
-  z-index:20;
-}
-.nav-item{
-  flex:1;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  gap:3px;cursor:pointer;
-  font-size:10px;color:var(--dim);
-  font-weight:600;letter-spacing:.4px;
-  text-transform:uppercase;
-  transition:color .2s;
-  position:relative;
-}
-.nav-item.active{color:var(--red)}
-.nav-item .nav-icon{font-size:20px;line-height:1}
-.nav-item.active::after{
-  content:'';
-  position:absolute;top:0;
-  width:24px;height:2px;
-  background:var(--red);
-  border-radius:0 0 3px 3px;
-}
+  @keyframes rotSpin { to { transform: rotate(360deg); } }
 
-/* ── SHEET (bottom drawer) ────────────────── */
-#overlay{
-  display:none;
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.6);
-  z-index:25;
-}
-#overlay.show{display:block}
+  /* Content Panel - Better Centered for Laptops */
+  .content-panel {
+    position: relative; 
+    z-index: 10;
+    width: 580px;                 /* narrower for better laptop balance */
+    max-width: 92%;
+    margin-right: 80px;
+    padding: 48px 52px;
+    background: rgba(10,4,2,.78);
+    border-left: 6px solid var(--gold);
+    backdrop-filter: blur(10px);
+    align-self: center;
+    border-radius: 4px;
+  }
+  .content-panel::before {
+    content: '';
+    position: absolute; 
+    inset: -6px;
+    border: 1.5px solid rgba(212,160,23,.30);
+    pointer-events: none;
+    border-radius: 4px;
+  }
 
-#sheet{
-  position:fixed;
-  bottom:-100%;left:0;right:0;
-  background:var(--surface);
-  border-radius:20px 20px 0 0;
-  padding:0 0 env(safe-area-inset-bottom,12px) 0;
-  transition:bottom .3s cubic-bezier(.32,1,.23,1);
-  z-index:30;
-  max-height:85vh;
-  overflow-y:auto;
-}
-#sheet.show{bottom:0}
+  .brand-tag {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 13px;
+    letter-spacing: 5px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
 
-.sheet-handle{
-  width:36px;height:4px;
-  background:var(--surface3);
-  border-radius:2px;
-  margin:12px auto 16px;
-}
-.sheet-title{
-  font-family:'Barlow Condensed',sans-serif;
-  font-weight:700;font-size:17px;
-  letter-spacing:.3px;
-  padding:0 16px 12px;
-  border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:8px;
-}
-.sheet-title span{color:var(--red)}
+  .slide-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 39px;
+    font-weight: 700;
+    line-height: 1.18;
+    color: var(--cream);
+    margin-bottom: 20px;
+  }
+  .slide-headline em {
+    font-style: italic;
+    color: var(--gold);
+  }
 
-.sheet-section{padding:12px 16px 4px;font-size:11px;color:var(--dim);font-weight:600;letter-spacing:.8px;text-transform:uppercase}
+  .slide-body {
+    font-size: 16px;
+    line-height: 1.65;
+    color: rgba(245,230,200,.88);
+    margin-bottom: 30px;
+  }
 
-.sheet-row{
-  display:flex;align-items:center;gap:12px;
-  padding:13px 16px;
-  cursor:pointer;
-  transition:background .15s;
-  border-bottom:1px solid var(--border);
-}
-.sheet-row:active{background:var(--surface2)}
-.sheet-row-icon{
-  width:36px;height:36px;
-  background:var(--surface3);
-  border-radius:9px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:17px;
-  flex-shrink:0;
-}
-.sheet-row-label{font-size:14px;font-weight:500;flex:1}
-.sheet-row-value{font-size:12px;color:var(--dim)}
+  .cta-row {
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .cta-chip {
+    padding: 10px 22px;
+    border: 1.6px solid var(--gold);
+    color: var(--gold);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    background: transparent;
+  }
+  .cta-chip.filled {
+    background: var(--gold);
+    color: var(--earth);
+  }
 
-/* Quality dots */
-.q-dots{display:flex;gap:4px}
-.q-dot{
-  width:8px;height:8px;border-radius:50%;
-  background:var(--surface3);
-}
-.q-dot.on{background:var(--red)}
+  .contact-strip {
+    border-top: 1px solid rgba(212,160,23,.35);
+    padding-top: 22px;
+    display: grid;
+    gap: 9px;
+  }
+  .contact-item {
+    display: flex; 
+    align-items: center; 
+    gap: 11px;
+    font-size: 14.5px;
+    color: var(--cream);
+  }
+  .contact-item .icon {
+    width: 28px; 
+    height: 28px;
+    background: var(--gold);
+    border-radius: 50%;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    font-size: 13px;
+    color: var(--earth);
+    flex-shrink: 0;
+  }
 
-/* ── TOAST ───────────────────────────────── */
-.toast{
-  position:fixed;
-  bottom:calc(var(--nav-h) + 16px);
-  left:50%;transform:translateX(-50%) translateY(12px);
-  background:var(--surface2);
-  border:1px solid var(--border);
-  padding:9px 18px;border-radius:24px;
-  font-size:13px;font-weight:500;
-  opacity:0;transition:opacity .2s,transform .2s;
-  pointer-events:none;
-  white-space:nowrap;
-  z-index:40;
-}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  /* Top Bar */
+  .top-bar {
+    position: fixed; 
+    top: 20px; 
+    left: 20px; 
+    right: 20px;
+    z-index: 99;
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between;
+    height: 58px;
+    padding: 0 30px;
+    background: rgba(10,4,2,.82);
+    border-bottom: 2px solid var(--gold);
+    backdrop-filter: blur(8px);
+  }
+  .logo-text { font-size: 26px; letter-spacing: 4px; color: var(--gold); }
+  .logo-sub  { font-size: 10.5px; letter-spacing: 4.5px; color: var(--cream); opacity: .7; }
 
-/* ── SCORES TICKER ───────────────────────── */
-#scores-bar{
-  position:absolute;
-  bottom:0;left:0;right:0;
-  height:32px;
-  background:rgba(0,0,0,.75);
-  backdrop-filter:blur(8px);
-  overflow:hidden;
-  display:flex;align-items:center;
-  border-top:1px solid var(--border);
-  z-index:8;
-}
-.scores-inner{
-  display:flex;gap:0;
-  white-space:nowrap;
-  animation:ticker 30s linear infinite;
-}
-.scores-inner:hover{animation-play-state:paused}
-@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+  .live-dot {
+    display: flex; 
+    align-items: center; 
+    gap: 7px;
+    font-size: 10.5px; 
+    letter-spacing: 2.5px;
+    color: var(--cream); 
+    opacity: .8;
+    text-transform: uppercase;
+  }
+  .live-dot span {
+    width: 9px; height: 9px;
+    background: #e74c3c;
+    border-radius: 50%;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .45; transform: scale(1.5); } }
 
-.score-item{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:0 20px;font-size:11px;font-weight:500;
-  border-right:1px solid var(--border);
-}
-.score-badge{
-  background:var(--red);
-  color:#fff;font-size:9px;font-weight:700;
-  padding:1px 4px;border-radius:3px;
-  letter-spacing:.4px;
-}
-
-/* ── PWA INSTALL BANNER ──────────────────── */
-#install-banner{
-  position:absolute;
-  top:var(--top-h);left:12px;right:12px;
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:10px 14px;
-  display:flex;align-items:center;gap:10px;
-  z-index:9;
-  opacity:0;pointer-events:none;
-  transform:translateY(-8px);
-  transition:all .3s;
-}
-#install-banner.show{opacity:1;pointer-events:all;transform:translateY(0)}
-#install-banner .logo-s{width:32px;height:32px;font-size:16px;border-radius:7px}
-#install-banner p{flex:1;font-size:12px;line-height:1.3}
-#install-banner p b{font-weight:600}
-#install-banner p span{color:var(--dim)}
-#install-btn{
-  background:var(--red);
-  padding:6px 12px;border-radius:8px;
-  font-size:12px;font-weight:700;
-  cursor:pointer;white-space:nowrap;
-  flex-shrink:0;
-}
-#banner-close{
-  font-size:18px;color:var(--dim);cursor:pointer;
-  flex-shrink:0;line-height:1;
-}
+  /* Bottom Ticker */
+  .ticker-bar {
+    position: fixed; 
+    bottom: 20px; 
+    left: 20px; 
+    right: 20px;
+    z-index: 99;
+    background: rgba(212,160,23,.94);
+    height: 40px;
+    overflow: hidden;
+    display: flex; 
+    align-items: center;
+  }
+  .ticker-label {
+    background: var(--deep-red);
+    color: var(--cream);
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 10.5px;
+    letter-spacing: 3px;
+    padding: 0 20px;
+    height: 100%;
+    display: flex; 
+    align-items: center;
+  }
+  .ticker-text {
+    display: inline-block;
+    white-space: nowrap;
+    animation: tickerScroll 26s linear infinite;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--earth);
+    letter-spacing: 1.8px;
+    padding-left: 30px;
+  }
+  @keyframes tickerScroll {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(-100%); }
+  }
 </style>
 </head>
 <body>
 
-<!-- PLAYER -->
-<div id="player-wrap">
-  <div id="player"></div>
-
-  <!-- TOP BAR -->
-  <div id="topbar">
-    <img id="thumb" alt="">
-    <div id="title-wrap">
-      <div id="title">Sports 803</div>
-      <div id="subtitle">Live Stream</div>
-    </div>
-    <div class="live-dot">LIVE</div>
+<!-- Top Bar -->
+<div class="top-bar">
+  <div>
+    <div class="logo-text">JANZI</div>
+    <div class="logo-sub">East African Music Experience</div>
   </div>
-
-  <!-- STREAM SWITCHER -->
-  <div id="stream-bar"></div>
-
-  <!-- INSTALL BANNER -->
-  <div id="install-banner">
-    <div class="logo-s">S</div>
-    <p><b>Install Sports 803</b><br><span>Free live sports, no app store needed</span></p>
-    <div id="install-btn" onclick="installPWA()">Install</div>
-    <div id="banner-close" onclick="closeBanner()">×</div>
-  </div>
-
-  <!-- TAP ZONE -->
-  <div id="tap-zone" onclick="toggleControls()"></div>
-
-  <!-- CENTER CONTROLS -->
-  <div id="center-controls">
-    <div class="ctrl-btn" onclick="prevStream()">⏮</div>
-    <div class="ctrl-btn main" id="play-pause-btn" onclick="togglePlay()">⏸</div>
-    <div class="ctrl-btn" onclick="nextStream()">⏭</div>
-  </div>
-
-  <!-- SCORES TICKER -->
-  <div id="scores-bar">
-    <div class="scores-inner" id="scores-inner">
-      <!-- filled by JS -->
-    </div>
-  </div>
-
-  <!-- LOADING -->
-  <div id="loading">
-    <div class="logo-badge">
-      <div class="logo-s">S</div>
-      <div class="logo-text">SPORTS <span>803</span></div>
-    </div>
-    <div class="spinner"></div>
-    <p id="loading-text">Connecting to stream…</p>
+  <div class="live-dot"><span></span> LIVE ADVERTISEMENT</div>
+  <div style="text-align:right;">
+    <div style="font-size:19px; font-weight:600; color:var(--gold);">📞 0773 033 240</div>
+    <div style="font-size:11.5px; color:var(--cream); opacity:0.8;">janzimusic.com</div>
   </div>
 </div>
 
-<!-- BOTTOM NAV -->
-<div id="bottom-nav">
-  <div class="nav-item active" onclick="navClick('home')">
-    <div class="nav-icon">🏠</div>Home
+<!-- Kente Border -->
+<div class="kente-border"></div>
+
+<!-- Slideshow -->
+<div class="slideshow">
+
+  <!-- Paste all your 20 slides here (same content as before) -->
+  <!-- Example for Slide 1: -->
+  <div class="slide">
+    <div class="slide-bg" style="background-image:url('/mnt/user-data/uploads/IMG_8382.jpeg')"></div>
+    <div class="adinkra adinkra-tl">✦</div>
+    <div class="adinkra adinkra-br">❋</div>
+    <div class="content-panel">
+      <div class="brand-tag">Janzi Band · Uganda</div>
+      <div class="slide-headline">Where <em>Ancient Strings</em> Meet Modern Sound</div>
+      <div class="slide-body">Experience the revolutionary Janzi instrument — a masterpiece of East African craftsmanship, redefining music for the world stage.</div>
+      <div class="cta-row">
+        <div class="cta-chip filled">Learn Janzi</div>
+        <div class="cta-chip">Book an Event</div>
+      </div>
+      <div class="contact-strip">
+        <div class="contact-item"><div class="icon">📞</div>0773 033 240</div>
+        <div class="contact-item"><div class="icon">🌐</div><a href="https://janzimusic.com" target="_blank">janzimusic.com</a></div>
+      </div>
+    </div>
   </div>
-  <div class="nav-item" id="nav-live" onclick="navClick('live')">
-    <div class="nav-icon">📡</div>Live
-  </div>
-  <div class="nav-item" onclick="navClick('sports')">
-    <div class="nav-icon">⚽</div>Sports
-  </div>
-  <div class="nav-item" onclick="openSheet()">
-    <div class="nav-icon">⚙️</div>Settings
-  </div>
-  <div class="nav-item" onclick="navClick('you')">
-    <div class="nav-icon">👤</div>You
+
+  <!-- Add the remaining 19 slides exactly as you had them before -->
+
+</div>
+
+<!-- Bottom Ticker -->
+<div class="ticker-bar">
+  <div class="ticker-label">JANZI BAND</div>
+  <div class="ticker-track">
+    <div class="ticker-text">
+      🎵 Learn the Janzi — East Africa’s Revolutionary Harp • 
+      📞 Book Ssewa Ssewa: 0773 033 240 • 
+      🌐 janzimusic.com • 
+      📸 @janzi_band • 
+      📺 YouTube: JanziBand1 • 
+      Weddings • Festivals • Corporate • Private Sessions • 
+      ✨ Ancient Strings Meet Modern Sound
+    </div>
   </div>
 </div>
 
-<!-- OVERLAY -->
-<div id="overlay" onclick="closeSheet()"></div>
-
-<!-- SETTINGS SHEET -->
-<div id="sheet">
-  <div class="sheet-handle"></div>
-  <div class="sheet-title"><span>⚙</span> Player Settings</div>
-
-  <div class="sheet-section">Stream</div>
-  <div class="sheet-row" onclick="nextStream();closeSheet()">
-    <div class="sheet-row-icon">🔄</div>
-    <div class="sheet-row-label">Switch Stream</div>
-    <div class="sheet-row-value" id="stream-counter">1/1</div>
-  </div>
-  <div class="sheet-row" onclick="refresh();closeSheet()">
-    <div class="sheet-row-icon">↺</div>
-    <div class="sheet-row-label">Refresh Stream</div>
-  </div>
-
-  <div class="sheet-section">Output</div>
-  <div class="sheet-row" onclick="cast();closeSheet()">
-    <div class="sheet-row-icon">📺</div>
-    <div class="sheet-row-label">Cast to TV</div>
-    <div class="sheet-row-value">Chromecast</div>
-  </div>
-  <div class="sheet-row" onclick="airplay();closeSheet()">
-    <div class="sheet-row-icon">📱</div>
-    <div class="sheet-row-label">AirPlay</div>
-    <div class="sheet-row-value">Apple</div>
-  </div>
-  <div class="sheet-row" onclick="fullscreen();closeSheet()">
-    <div class="sheet-row-icon">⛶</div>
-    <div class="sheet-row-label">Fullscreen</div>
-  </div>
-
-  <div class="sheet-section">More</div>
-  <div class="sheet-row" onclick="window.open('https://sports803livestream.blogspot.com/','_blank');closeSheet()">
-    <div class="sheet-row-icon">🌐</div>
-    <div class="sheet-row-label">Open Sports 803</div>
-    <div class="sheet-row-value">↗</div>
-  </div>
-  <div class="sheet-row" onclick="window.open('https://whatsapp.com/channel/0029VaDEAX4BPzjaAKrPKD3k','_blank');closeSheet()">
-    <div class="sheet-row-icon">🔔</div>
-    <div class="sheet-row-label">Notifications</div>
-    <div class="sheet-row-value">WhatsApp</div>
-  </div>
-  <div class="sheet-row" onclick="closeSheet()">
-    <div class="sheet-row-icon">✕</div>
-    <div class="sheet-row-label">Close</div>
-  </div>
-</div>
-
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
-
-<script>
-/* ── CONFIG ─────────────────────────────── */
-const params   = new URLSearchParams(location.search);
-let streams    = params.getAll("mora");
-let index      = 0;
-let jwPlayer   = null;
-let isPlaying  = true;
-let ctrlTimer  = null;
-let deferredInstall = null;
-
-/* ── SCORES (demo — replace with real API) ── */
-const DEMO_SCORES = [
-  {home:'Man City',away:'Arsenal',score:'2 – 1',live:true},
-  {home:'Real Madrid',away:'Barcelona',score:'1 – 1',live:true},
-  {home:'PSG',away:'Lyon',score:'3 – 0',live:false},
-  {home:'Juventus',away:'Inter',score:'0 – 0',live:true},
-  {home:'Bayern',away:'Dortmund',score:'2 – 2',live:false},
-  {home:'Liverpool',away:'Chelsea',score:'1 – 0',live:true},
-];
-
-function buildScores(){
-  const inner = document.getElementById('scores-inner');
-  const items = [...DEMO_SCORES,...DEMO_SCORES]; // duplicate for seamless loop
-  inner.innerHTML = items.map(s=>`
-    <div class="score-item">
-      ${s.live?'<span class="score-badge">LIVE</span>':''}
-      ${s.home} <b>${s.score}</b> ${s.away}
-    </div>`).join('');
-}
-
-/* ── INIT ────────────────────────────────── */
-buildScores();
-fetchMeta();
-buildStreamBar();
-updateStreamCounter();
-
-if(streams.length){
-  play(streams[index]);
-}else{
-  document.getElementById('loading-text').textContent='No stream URL provided';
-  setTimeout(()=>{document.getElementById('loading').style.display='none'},2000);
-}
-
-// Show install banner after 4s
-setTimeout(()=>{
-  if(!window.matchMedia('(display-mode: standalone)').matches){
-    document.getElementById('install-banner').classList.add('show');
-  }
-},4000);
-
-/* ── PLAYER ──────────────────────────────── */
-function play(url){
-  document.getElementById('loading').style.display='flex';
-  document.getElementById('loading-text').textContent='Connecting to stream…';
-
-  if(jwPlayer) jwPlayer.remove();
-
-  jwPlayer = jwplayer('player').setup({
-    file: url,
-    autostart: true,
-    mute: false,
-    width: '100%',
-    height: '100%',
-    stretching: 'uniform',
-    skin:{name:'netflix'},
-    displaytitle: false,
-    displaydescription: false,
-    controls: false,  // we use custom controls
-  });
-
-  jwPlayer.on('ready',()=>{
-    document.getElementById('loading').style.display='none';
-    isPlaying = true;
-    updatePlayBtn();
-  });
-
-  jwPlayer.on('play',()=>{isPlaying=true;updatePlayBtn()});
-  jwPlayer.on('pause',()=>{isPlaying=false;updatePlayBtn()});
-  jwPlayer.on('error',()=>{
-    document.getElementById('loading-text').textContent='Stream error – trying next…';
-    setTimeout(nextStream,1500);
-  });
-}
-
-/* ── STREAM CONTROL ──────────────────────── */
-function buildStreamBar(){
-  const bar = document.getElementById('stream-bar');
-  if(streams.length<=1){bar.style.display='none';return;}
-  bar.innerHTML = streams.map((s,i)=>`
-    <div class="stream-pill ${i===index?'active':''}" onclick="switchTo(${i})">
-      Stream ${i+1}
-    </div>`).join('');
-}
-
-function switchTo(i){
-  index=i;
-  play(streams[index]);
-  buildStreamBar();
-  updateStreamCounter();
-  toast(`Stream ${i+1} of ${streams.length}`);
-}
-
-function nextStream(){
-  index=(index+1)%Math.max(streams.length,1);
-  play(streams[index]);
-  buildStreamBar();
-  updateStreamCounter();
-  toast(`Stream ${index+1} of ${streams.length}`);
-}
-
-function prevStream(){
-  index=(index-1+Math.max(streams.length,1))%Math.max(streams.length,1);
-  play(streams[index]);
-  buildStreamBar();
-  updateStreamCounter();
-}
-
-function refresh(){
-  play(streams[index]);
-  toast('Refreshing…');
-}
-
-function updateStreamCounter(){
-  document.getElementById('stream-counter').textContent=
-    `${index+1}/${streams.length||1}`;
-}
-
-/* ── PLAYBACK ────────────────────────────── */
-function togglePlay(){
-  if(!jwPlayer) return;
-  if(isPlaying) jwPlayer.pause();
-  else jwPlayer.play();
-}
-
-function updatePlayBtn(){
-  document.getElementById('play-pause-btn').textContent=isPlaying?'⏸':'▶';
-}
-
-/* ── TAP / CONTROLS ──────────────────────── */
-function toggleControls(){
-  const cc=document.getElementById('center-controls');
-  const tb=document.getElementById('topbar');
-  const sb=document.getElementById('stream-bar');
-  const show=!cc.classList.contains('show');
-  cc.classList.toggle('show',show);
-  tb.classList.toggle('hide',!show);
-  sb.classList.toggle('hide',!show);
-  clearTimeout(ctrlTimer);
-  if(show) ctrlTimer=setTimeout(()=>{
-    cc.classList.remove('show');
-    tb.classList.add('hide');
-    sb.classList.add('hide');
-  },3500);
-}
-
-/* ── META (Blogger parent) ───────────────── */
-function fetchMeta(){
-  try{
-    const pd=window.parent.document;
-    const title=
-      pd.querySelector("meta[property='og:title']")?.content||
-      pd.querySelector("h1.post-title")?.textContent||
-      pd.title||'Sports 803';
-    const img=
-      pd.querySelector("meta[property='og:image']")?.content||
-      pd.querySelector('.post-body img')?.src||'';
-    document.getElementById('title').textContent=title;
-    document.getElementById('subtitle').textContent='Sports 803 • Live';
-    if(img) document.getElementById('thumb').src=img;
-  }catch(e){
-    document.getElementById('title').textContent='Sports 803';
-  }
-}
-
-/* ── FULLSCREEN ──────────────────────────── */
-function fullscreen(){
-  const el=document.documentElement;
-  if(!document.fullscreenElement) el.requestFullscreen?.();
-  else document.exitFullscreen?.();
-}
-
-/* ── CAST ────────────────────────────────── */
-function cast(){
-  if(!window.cast||!cast.framework){toast('Cast not available');return;}
-  cast.framework.CastContext.getInstance().requestSession().then(()=>{
-    const session=cast.framework.CastContext.getInstance().getCurrentSession();
-    const media=new chrome.cast.media.MediaInfo(streams[index],'application/x-mpegURL');
-    session.loadMedia(new chrome.cast.media.LoadRequest(media));
-    toast('Casting to TV…');
-  }).catch(()=>toast('Cast cancelled'));
-}
-
-/* ── AIRPLAY ─────────────────────────────── */
-function airplay(){
-  const v=document.querySelector('video');
-  if(v?.webkitShowPlaybackTargetPicker) v.webkitShowPlaybackTargetPicker();
-  else toast('AirPlay not supported');
-}
-
-/* ── SHEET ───────────────────────────────── */
-function openSheet(){
-  document.getElementById('sheet').classList.add('show');
-  document.getElementById('overlay').classList.add('show');
-}
-function closeSheet(){
-  document.getElementById('sheet').classList.remove('show');
-  document.getElementById('overlay').classList.remove('show');
-}
-
-/* ── BOTTOM NAV ──────────────────────────── */
-function navClick(tab){
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  const urls={
-    home:'https://sports803livestream.blogspot.com/',
-    live:'https://sports803livestream.blogspot.com/search/label/Live%20TV',
-    sports:'https://sports803livestream.blogspot.com/search/label/Sport',
-    you:'https://sports803livestream.blogspot.com/p/saved.html',
-  };
-  if(urls[tab]) window.open(urls[tab],'_blank');
-}
-
-/* ── PWA INSTALL ─────────────────────────── */
-window.addEventListener('beforeinstallprompt',e=>{
-  e.preventDefault();
-  deferredInstall=e;
-  document.getElementById('install-banner').classList.add('show');
-});
-
-function installPWA(){
-  if(deferredInstall){
-    deferredInstall.prompt();
-    deferredInstall.userChoice.then(()=>{closeBanner()});
-  }else{
-    toast('Open in browser to install');
-  }
-}
-
-function closeBanner(){
-  document.getElementById('install-banner').classList.remove('show');
-}
-
-/* ── TOAST ───────────────────────────────── */
-let toastTimer;
-function toast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg;
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
-}
-</script>
 </body>
 </html>
