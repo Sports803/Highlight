@@ -1,256 +1,763 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sports 803 Live</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
-<script src="https://cdn.jwplayer.com/libraries/IDzF9Zmk.js"></script>
-<link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <title>LuminaStream • Live TV Player</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <!-- JW Player, Video.js, HLS, Shaka, Dash -->
+  <script src="https://cdn.jwplayer.com/libraries/IDzF9Zmk.js"></script>
+  <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.compiled.min.js"></script>
+  <script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
+  <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+  <!-- Google Cast SDK -->
+  <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-<style>
-/* Modern Netflix-inspired dark theme */
-:root {
-  --red: #e50914; --red-hover: #f40612;
-  --bg: #141414; --surface: #1f1f1f; --surface2: #2a2a2a;
-  --border: rgba(255,255,255,0.1); --text: #fff; --dim: #b3b3b3;
-  --font: 'DM Sans', system-ui, sans-serif;
-  --r: 12px; --t: 0.25s;
-}
-* { box-sizing: border-box; margin:0; padding:0; }
-html, body { height:100%; overflow:hidden; background:var(--bg); font-family:var(--font); color:var(--text); -webkit-font-smoothing:antialiased; }
+    body {
+      background: #000;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      position: fixed;
+      color: white;
+    }
 
-#app { display:flex; flex-direction:column; width:100%; height:100%; position:fixed; inset:0; }
+    /* Main stage */
+    #app {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #000;
+    }
 
-/* Top Netflix-style bar */
-#top-bar {
-  position:absolute; top:0; left:0; right:0; z-index:100;
-  background:linear-gradient(to bottom, rgba(0,0,0,0.85), transparent);
-  padding:12px 16px; display:flex; align-items:center; gap:12px;
-  transition:opacity .3s; opacity:1;
-}
-#top-bar.hidden { opacity:0; pointer-events:none; }
-.channel-name { font-weight:700; font-size:15px; }
-.live-dot { width:8px; height:8px; background:var(--red); border-radius:50%; animation:blink 1.5s infinite; }
-#stream-label { font-size:13px; color:var(--dim); margin-left:auto; }
+    #stage {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
 
-/* Stage */
-#stage { flex:1; position:relative; background:#000; overflow:hidden; }
-#player-host, #embed-host { position:absolute; inset:0; width:100%; height:100%; }
+    /* Video containers */
+    #player-host, #embed-host {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+    }
+    #player-host { z-index: 2; display: none; }
+    #embed-host { z-index: 3; display: none; background: #000; }
+    #embed-host.active { display: flex; flex-direction: column; }
 
-/* Auto-hide controls */
-.controls-visible #top-bar,
-.controls-visible #bottom-bar { opacity:1; pointer-events:auto; }
+    /* Netflix-style top bar (auto-hide) */
+    .top-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
+      padding: 12px 16px 32px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .top-bar.hide {
+      transform: translateY(-100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .channel-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .thumbnail-sm {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: #2a2a2a;
+      object-fit: cover;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .title-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .channel-name {
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: -0.2px;
+      background: rgba(229,24,26,0.9);
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      width: fit-content;
+    }
+    .stream-label {
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0.9;
+    }
+    .live-badge {
+      background: #e5181a;
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background: white;
+      border-radius: 50%;
+      animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+    .viewer-count, .epg-now {
+      font-size: 11px;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(8px);
+      padding: 4px 12px;
+      border-radius: 40px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+    }
+    .right-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .icon-btn {
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(8px);
+      border: none;
+      border-radius: 40px;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .icon-btn:active { transform: scale(0.94); background: rgba(229,24,26,0.7); }
 
-/* Bottom bar (simplified) */
-#bottom-bar {
-  position:absolute; bottom:0; left:0; right:0; z-index:90;
-  background:linear-gradient(to top, rgba(0,0,0,0.85), transparent);
-  padding:16px; display:flex; flex-wrap:wrap; gap:10px; align-items:center;
-  transition:opacity .3s; opacity:0;
-}
-#bottom-bar.visible { opacity:1; }
+    /* Bottom controls row (bigger mobile buttons) */
+    .bottom-controls {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      z-index: 45;
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      padding: 12px 20px;
+      transition: transform 0.3s ease, opacity 0.3s;
+      background: linear-gradient(0deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
+      pointer-events: auto;
+    }
+    .bottom-controls.hide {
+      transform: translateY(100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .ctrl-btn {
+      background: rgba(20,20,20,0.9);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 60px;
+      padding: 10px 20px;
+      font-weight: 600;
+      font-size: 14px;
+      color: white;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+      min-width: 64px;
+      justify-content: center;
+    }
+    .ctrl-btn:active { transform: scale(0.96); background: #e5181a; border-color: #e5181a; }
+    .ctrl-btn-icon {
+      font-size: 18px;
+    }
 
-/* Stream buttons */
-.s-btn {
-  padding:10px 16px; border-radius:8px; background:var(--surface2); border:1px solid var(--border);
-  font-size:13px; font-weight:600; color:var(--dim); cursor:pointer; transition:all .2s;
-  display:flex; align-items:center; gap:6px;
-}
-.s-btn.active { background:rgba(229,9,20,0.2); border-color:var(--red); color:#fff; }
-.s-btn .dot { width:6px; height:6px; background:rgba(255,255,255,0.4); border-radius:50%; animation:blink 1.8s infinite; }
-.s-btn.active .dot { background:var(--red); }
+    /* Bottom Sheet (Settings) */
+    .bottom-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #111;
+      border-radius: 28px 28px 0 0;
+      z-index: 200;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 -8px 30px rgba(0,0,0,0.8);
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .bottom-sheet.open {
+      transform: translateY(0);
+    }
+    .sheet-handle {
+      width: 50px;
+      height: 5px;
+      background: #444;
+      border-radius: 20px;
+      margin: 12px auto;
+    }
+    .sheet-content {
+      padding: 8px 20px 30px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .sheet-section {
+      margin-bottom: 24px;
+    }
+    .sheet-title {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #aaa;
+      margin-bottom: 12px;
+    }
+    .stream-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .stream-option {
+      background: #1e1e1e;
+      padding: 12px 16px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: 0.1s;
+      border: 1px solid transparent;
+    }
+    .stream-option.active {
+      border-color: #e5181a;
+      background: #2a1617;
+    }
+    .quality-option {
+      background: #1e1e1e;
+      padding: 10px 16px;
+      border-radius: 40px;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-block;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    .quality-option.active {
+      background: #e5181a;
+    }
+    .epg-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .epg-item {
+      background: #1a1a1a;
+      border-radius: 14px;
+      padding: 10px 14px;
+    }
+    .epg-time {
+      font-size: 11px;
+      color: #e5181a;
+      font-weight: 600;
+    }
+    .sheet-close {
+      background: #e5181a;
+      border: none;
+      padding: 12px;
+      border-radius: 40px;
+      color: white;
+      font-weight: bold;
+      margin-top: 12px;
+      width: 100%;
+      cursor: pointer;
+    }
 
-/* Bigger mobile buttons */
-.r-btn {
-  padding:10px 14px; border-radius:8px; background:var(--surface2); border:1px solid var(--border);
-  font-size:13px; color:var(--dim); cursor:pointer;
-}
-.r-btn:hover, .r-btn:active { background:rgba(255,255,255,0.1); color:#fff; transform:scale(1.05); }
+    /* Toast & switching */
+    .toast-msg {
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(12px);
+      padding: 10px 20px;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 130;
+      opacity: 0;
+      transition: 0.2s;
+      pointer-events: none;
+      white-space: nowrap;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .toast-msg.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
 
-/* Other elements (loading, error, etc.) — kept similar but cleaner */
-#loading, #err-panel, #embed-err, #sw-banner, #toast { /* styles from original + tweaks */ }
-.spinner { border:3px solid rgba(255,255,255,.1); border-top-color:var(--red); width:40px; height:40px; border-radius:50%; animation:spin 0.8s linear infinite; }
+    /* Loading overlay */
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+      z-index: 90;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      opacity: 0;
+      visibility: hidden;
+      transition: 0.2s;
+    }
+    .loading-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    .spinner {
+      width: 42px;
+      height: 42px;
+      border: 3px solid #2a2a2a;
+      border-top: 3px solid #e5181a;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Bottom sheet for settings/EPG */
-.bottom-sheet {
-  position:absolute; bottom:0; left:0; right:0; background:var(--surface); border-top-left-radius:20px; border-top-right-radius:20px;
-  padding:20px; transform:translateY(100%); transition:transform .3s cubic-bezier(0.32,0.72,0,1); z-index:200; max-height:70vh; overflow:auto;
-}
-.bottom-sheet.open { transform:translateY(0); }
-
-/* Viewer counter & EPG */
-#viewer-count { font-size:13px; color:var(--dim); }
-#epg-now { font-weight:600; color:#fff; }
-
-/* Animations */
-@keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
-@keyframes spin { to { transform:rotate(360deg); } }
-
-/* Responsive tweaks */
-@media (max-width:480px) {
-  .s-btn { padding:8px 12px; font-size:12px; }
-}
-</style>
+    iframe, video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    }
+    .fb-wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #0a0a0a; flex-direction: column; gap: 12px; text-align: center; padding: 20px; }
+    .hidden { display: none !important; }
+  </style>
 </head>
 <body>
 <div id="app">
   <div id="stage">
-    <!-- Top bar -->
-    <div id="top-bar">
-      <div class="channel-name">Sports 803 <span class="live-dot"></span> LIVE</div>
-      <div id="stream-label"></div>
-      <div style="margin-left:auto; display:flex; gap:8px;">
-        <button onclick="toggleCast()" class="r-btn" title="Chromecast">📺</button>
-        <button onclick="toggleAirPlay()" class="r-btn" title="AirPlay" id="airplay-btn" style="display:none;"></button>
+    <!-- Netflix Top Bar -->
+    <div class="top-bar" id="topBar">
+      <div class="channel-info">
+        <img id="thumbnailImg" class="thumbnail-sm" src="https://placehold.co/40x40/1e1e1e/white?text=TV" alt="thumb">
+        <div class="title-stack">
+          <span class="channel-name" id="channelName">LIVE SPORTS</span>
+          <span class="stream-label" id="streamLabel">HD 1</span>
+        </div>
+        <div class="live-badge"><span class="live-dot"></span> LIVE</div>
+        <div class="viewer-count" id="viewerCount">👁️ 1.2k</div>
+        <div class="epg-now" id="epgNow">📺 NOW: Opening Match</div>
+      </div>
+      <div class="right-actions">
+        <button class="icon-btn" id="castBtn" title="Chromecast / AirPlay">📺</button>
+        <button class="icon-btn" id="settingsBtn" title="Settings">⚙️</button>
       </div>
     </div>
 
+    <!-- Bottom Controls Row (bigger buttons) -->
+    <div class="bottom-controls" id="bottomControls">
+      <button class="ctrl-btn" id="prevStreamBtn">◀ PREV</button>
+      <button class="ctrl-btn" id="refreshBtn">🔄 REFRESH</button>
+      <button class="ctrl-btn" id="nextStreamBtn">NEXT ▶</button>
+      <button class="ctrl-btn" id="fullscreenBtn">⛶ FULL</button>
+    </div>
+
+    <!-- Video containers -->
     <div id="player-host"></div>
-    <div id="embed-host" style="display:none; flex-direction:column; background:#000;"></div>
-
-    <!-- Loading / Error overlays (simplified from original) -->
-    <div id="loading" style="position:absolute;inset:0;background:rgba(0,0,0,0.7);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;color:#fff;">
-      <div class="spinner"></div>
-      <div id="load-txt">Finding fastest stream...</div>
+    <div id="embed-host">
+      <iframe id="embed-frame" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-presentation"></iframe>
+      <div id="embedErrorMsg" style="display:none; position:absolute; inset:0; background:#000; justify-content:center; align-items:center; flex-direction:column; gap:12px;">⚠️ Stream failed</div>
     </div>
+    
+    <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div><span id="loadText">Loading fastest stream...</span></div>
+    <div class="toast-msg" id="toastMsg"></div>
+  </div>
 
-    <div id="sw-banner" style="position:absolute;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);padding:8px 20px;border-radius:30px;font-size:13px;display:none;align-items:center;gap:8px;">
-      <span style="color:#ffcc00;">↻</span> <span id="sw-txt">Switching to faster source...</span>
-    </div>
-
-    <!-- Bottom bar -->
-    <div id="bottom-bar" class="visible">
-      <div id="stream-btns" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
-      <button onclick="showSettings()" class="r-btn" style="margin-left:auto;">Settings</button>
-      <button onclick="toggleEPG()" class="r-btn">EPG</button>
-    </div>
-
-    <!-- Bottom sheets -->
-    <div id="settings-sheet" class="bottom-sheet">
-      <h3 style="margin-bottom:16px;">Quality & Options</h3>
-      <select id="qual-sel" style="width:100%;padding:12px;background:var(--surface2);border:none;border-radius:8px;color:#fff;"></select>
-      <button onclick="hideSheet('settings-sheet')" style="margin-top:20px;width:100%;padding:12px;background:var(--red);color:#fff;border:none;border-radius:8px;">Close</button>
-    </div>
-
-    <div id="epg-sheet" class="bottom-sheet">
-      <h3>What's Playing</h3>
-      <div id="epg-now" style="margin:12px 0;font-size:15px;">Premier League • Arsenal vs Liverpool (Live)</div>
-      <div style="color:var(--dim);font-size:13px;">Next: • Chelsea vs Man City (in 45 min)</div>
-      <button onclick="hideSheet('epg-sheet')" style="margin-top:20px;width:100%;padding:12px;background:var(--red);color:#fff;border:none;border-radius:8px;">Close</button>
+  <!-- Bottom Sheet (Settings) -->
+  <div class="bottom-sheet" id="bottomSheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-content">
+      <div class="sheet-section">
+        <div class="sheet-title">📡 SOURCES</div>
+        <div class="stream-list" id="streamListSheet"></div>
+      </div>
+      <div class="sheet-section">
+        <div class="sheet-title">⚡ QUALITY</div>
+        <div id="qualityOptions"></div>
+      </div>
+      <div class="sheet-section">
+        <div class="sheet-title">📅 EPG (What's on now)</div>
+        <div id="epgSchedule" class="epg-list">Loading schedule...</div>
+      </div>
+      <div class="sheet-section">
+        <div class="sheet-title">👥 LIVE VIEWERS</div>
+        <div id="sheetViewerCount">—</div>
+      </div>
+      <button class="sheet-close" id="closeSheetBtn">CLOSE</button>
     </div>
   </div>
 </div>
 
-<!-- Toast -->
-<div id="toast" style="position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.9);color:#fff;padding:10px 20px;border-radius:30px;font-size:13px;white-space:nowrap;opacity:0;transition:opacity .3s;z-index:300;"></div>
-
 <script>
-// Your original SP logic is kept as base but heavily enhanced.
-// For brevity, I've summarized the major additions here. Full integration would replace sections.
+  (function(){
+    // ---------- CONFIG ----------
+    const moraUrls = new URLSearchParams(location.search).getAll('mora').filter(u => u && u.startsWith('http'));
+    const embedUrls = new URLSearchParams(location.search).getAll('embed').filter(u => u && u.startsWith('http'));
+    let streamsRaw = [];
+    let currentStreamIndex = 0;
+    let currentPlayer = null;
+    let currentAdapter = null;
+    let playGen = 0;
+    let activeStreamObj = null;
+    let qualityLevels = [];
+    let onQualityChange = null;
 
-let currentStreamTitle = "Sports 803 Live";
-let currentThumbnail = "";
-
-// Auto-fetch title & thumbnail from embedding page (OG meta)
-async function fetchMeta(url) {
-  try {
-    const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-    const res = await fetch(proxy);
-    const data = await res.json();
-    const html = data.contents;
-    const titleMatch = html.match(/<meta property="og:title" content="([^"]+)"/i) || html.match(/<title>([^<]+)<\/title>/i);
-    const thumbMatch = html.match(/<meta property="og:image" content="([^"]+)"/i);
-    if (titleMatch) currentStreamTitle = titleMatch[1].trim();
-    if (thumbMatch) currentThumbnail = thumbMatch[1];
-    document.getElementById('stream-label').textContent = currentStreamTitle;
-  } catch(e) {}
-}
-
-// Auto stream tester - tests sources in parallel and picks fastest
-async function testAndPickFastest(streams) {
-  const promises = streams.map(async (s, i) => {
-    const start = Date.now();
-    try {
-      // Simple HEAD or quick fetch test
-      await fetch(s.url || s, { method: 'HEAD', mode: 'no-cors' });
-      return { index: i, time: Date.now() - start, stream: s };
-    } catch {
-      return { index: i, time: Infinity, stream: s };
+    // EPG mock (smart)
+    const mockEPG = [
+      { time: "14:00", title: "⚽ Premier League Live", channel: "Sports" },
+      { time: "16:30", title: "🎾 US Open Highlights", channel: "Sports" },
+      { time: "19:00", title: "🏀 NBA Finals", channel: "Basketball" },
+      { time: "22:00", title: "🎬 Action Movie", channel: "Movies" }
+    ];
+    let viewerCount = Math.floor(Math.random() * 5000) + 800;
+    
+    // DOM elements
+    const topBar = document.getElementById('topBar');
+    const bottomControls = document.getElementById('bottomControls');
+    const toastMsgDiv = document.getElementById('toastMsg');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const loadTextSpan = document.getElementById('loadText');
+    const playerHost = document.getElementById('player-host');
+    const embedHost = document.getElementById('embed-host');
+    const embedFrame = document.getElementById('embed-frame');
+    const thumbnailImg = document.getElementById('thumbnailImg');
+    const channelNameSpan = document.getElementById('channelName');
+    const streamLabelSpan = document.getElementById('streamLabel');
+    const viewerCountSpan = document.getElementById('viewerCount');
+    const epgNowSpan = document.getElementById('epgNow');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const bottomSheet = document.getElementById('bottomSheet');
+    const closeSheetBtn = document.getElementById('closeSheetBtn');
+    const prevStreamBtn = document.getElementById('prevStreamBtn');
+    const nextStreamBtn = document.getElementById('nextStreamBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const castBtn = document.getElementById('castBtn');
+    const streamListSheet = document.getElementById('streamListSheet');
+    const qualityOptionsDiv = document.getElementById('qualityOptions');
+    const epgScheduleDiv = document.getElementById('epgSchedule');
+    const sheetViewerCount = document.getElementById('sheetViewerCount');
+    
+    let autoHideTimer = null;
+    function resetAutoHide() {
+      if(autoHideTimer) clearTimeout(autoHideTimer);
+      topBar.classList.remove('hide');
+      bottomControls.classList.remove('hide');
+      autoHideTimer = setTimeout(() => {
+        topBar.classList.add('hide');
+        bottomControls.classList.add('hide');
+      }, 3500);
     }
-  });
-  const results = await Promise.all(promises);
-  results.sort((a,b) => a.time - b.time);
-  return results[0].stream;
-}
-
-// Chromecast support
-let castSession = null;
-function toggleCast() {
-  if (!window.chrome || !window.chrome.cast) {
-    toast("Chromecast not available in this browser");
-    return;
-  }
-  // Initialize Cast framework (add full Google Cast SDK script in production)
-  toast("Casting to Chromecast... (framework ready in full version)");
-  // Full implementation: load cast_sender.js and use cast.framework
-}
-
-// AirPlay (Safari)
-function toggleAirPlay() {
-  const video = document.querySelector('video');
-  if (video && video.webkitShowPlaybackTargetPicker) {
-    video.webkitShowPlaybackTargetPicker();
-  } else {
-    toast("AirPlay available on Safari/iOS");
-  }
-}
-
-// Live viewer counter (placeholder - connect to your backend)
-let viewerCount = 1243;
-setInterval(() => {
-  viewerCount += Math.floor(Math.random()*7) + 3;
-  // You can display it in top-bar or bottom if desired
-}, 15000);
-
-// Show toast helper
-function toast(msg, dur=2000) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.style.opacity = 1;
-  setTimeout(() => t.style.opacity = 0, dur);
-}
-
-// Show/hide bottom sheets
-function showSettings() { document.getElementById('settings-sheet').classList.add('open'); }
-function toggleEPG() { document.getElementById('epg-sheet').classList.toggle('open'); }
-function hideSheet(id) { document.getElementById(id).classList.remove('open'); }
-
-// Auto-hide controls (tap anywhere on stage)
-let controlsTimeout;
-document.getElementById('stage').addEventListener('click', () => {
-  const stage = document.getElementById('stage');
-  stage.classList.toggle('controls-visible');
-  clearTimeout(controlsTimeout);
-  if (stage.classList.contains('controls-visible')) {
-    controlsTimeout = setTimeout(() => stage.classList.remove('controls-visible'), 4000);
-  }
-});
-
-// Integrate with your existing SP object (add these enhancements inside your script)
- // Example hooks:
- // - After resolving streams: testAndPickFastest(streams)
- // - On load: fetchMeta(originalUrl)
- // - Add viewer count display if wanted
- // - Call toggleCast / toggleAirPlay from buttons
-
-// For full Chromecast, add this script tag:
-// <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
-
-// Initialize your original player logic here (SP = ...)
-
-// End of enhancements
-toast("Player enhanced • Mobile-first + Auto intelligence ready");
+    function showUI() { resetAutoHide(); }
+    document.addEventListener('mousemove', showUI);
+    document.addEventListener('touchstart', showUI);
+    
+    function showToast(msg, duration=2500) {
+      toastMsgDiv.textContent = msg;
+      toastMsgDiv.classList.add('show');
+      setTimeout(() => toastMsgDiv.classList.remove('show'), duration);
+    }
+    
+    // ---- AUTO STREAM TESTER (fastest wins) ----
+    async function testStreamSpeed(url, type='hls') {
+      const start = performance.now();
+      try {
+        let testUrl = url;
+        if (type === 'hls' && url.includes('.m3u8')) testUrl = url;
+        else if (type === 'dash') testUrl = url;
+        else return 9999;
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000);
+        const res = await fetch(testUrl, { method: 'HEAD', signal: controller.signal, mode: 'cors' });
+        clearTimeout(timeout);
+        if (!res.ok) return 9999;
+        const duration = performance.now() - start;
+        return duration;
+      } catch(e) { return 9999; }
+    }
+    
+    async function resolveStreamWithSpeed(rawUrl) {
+      try {
+        const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(rawUrl)}`;
+        const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
+        const html = await res.text();
+        // extract manifest
+        let match = html.match(/(https?:\/\/[^\s"']+\.m3u8[^\s"']*)/i);
+        let streamUrl = match ? match[1] : null;
+        let type = 'hls';
+        if(!streamUrl) {
+          match = html.match(/(https?:\/\/[^\s"']+\.mpd[^\s"']*)/i);
+          if(match) { streamUrl = match[1]; type = 'dash'; }
+        }
+        if(!streamUrl) throw new Error('No manifest');
+        const speed = await testStreamSpeed(streamUrl, type);
+        return { url: streamUrl, type, originalUrl: rawUrl, speed };
+      } catch(e) { return { error: true, speed: 9999 }; }
+    }
+    
+    async function prepareStreams() {
+      const allCandidates = [];
+      for(let u of moraUrls) allCandidates.push({ type: 'resolve', url: u });
+      for(let u of embedUrls) allCandidates.push({ type: 'embed', url: u, speed: 500 });
+      const results = [];
+      for(let cand of allCandidates) {
+        if(cand.type === 'embed') {
+          results.push({ type: 'embed', url: cand.url, embedUrls: [cand.url], speed: 300, originalUrl: cand.url });
+        } else {
+          loadTextSpan.textContent = `Testing stream... ${results.length+1}/${allCandidates.length}`;
+          const resolved = await resolveStreamWithSpeed(cand.url);
+          if(!resolved.error && resolved.url) {
+            results.push({ type: resolved.type, url: resolved.url, originalUrl: cand.url, speed: resolved.speed });
+          }
+        }
+      }
+      results.sort((a,b) => (a.speed || 9999) - (b.speed || 9999));
+      return results;
+    }
+    
+    // ---- Metadata from referrer / parameters ----
+    async function fetchMetadataFromEmbedder() {
+      try {
+        const referrer = document.referrer;
+        if(referrer && referrer.startsWith('http')) {
+          const proxyMeta = `https://api.allorigins.win/get?url=${encodeURIComponent(referrer)}`;
+          const res = await fetch(proxyMeta);
+          const data = await res.json();
+          const html = data.contents;
+          const titleMatch = html.match(/<meta property="og:title" content="([^"]+)"/i);
+          const imgMatch = html.match(/<meta property="og:image" content="([^"]+)"/i);
+          if(titleMatch) channelNameSpan.innerText = titleMatch[1].slice(0, 30);
+          if(imgMatch) thumbnailImg.src = imgMatch[1];
+        }
+      } catch(e) { console.warn('meta fetch fail'); }
+    }
+    
+    // ---- EPG update & viewer counter mock ----
+    function updateEPGDisplay() {
+      const now = new Date();
+      const hour = now.getHours();
+      const minute = now.getMinutes();
+      const current = mockEPG.find(p => {
+        const [h,m] = p.time.split(':');
+        return parseInt(h) === hour && parseInt(m) <= minute;
+      }) || mockEPG[0];
+      epgNowSpan.innerHTML = `📺 NOW: ${current.title}`;
+      epgScheduleDiv.innerHTML = mockEPG.map(p => `<div class="epg-item"><span class="epg-time">${p.time}</span> ${p.title}</div>`).join('');
+    }
+    setInterval(() => {
+      viewerCount += Math.floor(Math.random() * 60) - 20;
+      viewerCount = Math.max(300, Math.min(12500, viewerCount));
+      viewerCountSpan.innerHTML = `👁️ ${viewerCount.toLocaleString()}`;
+      sheetViewerCount.innerText = `${viewerCount.toLocaleString()} watching now`;
+    }, 8700);
+    
+    // ---- Player core (simplified but robust) ----
+    async function playStream(streamObj, gen) {
+      if(gen !== playGen) return;
+      loadingOverlay.classList.add('active');
+      playerHost.style.display = 'none';
+      embedHost.classList.remove('active');
+      if(currentPlayer) try { currentPlayer.pause?.(); if(currentPlayer.destroy) currentPlayer.destroy(); } catch(e) {}
+      currentPlayer = null;
+      if(streamObj.type === 'embed') {
+        embedHost.classList.add('active');
+        embedFrame.src = streamObj.url;
+        loadingOverlay.classList.remove('active');
+        showToast(`📺 Embedded stream ready`, 1500);
+        currentAdapter = 'embed';
+        return;
+      }
+      playerHost.style.display = 'block';
+      playerHost.innerHTML = '';
+      const videoEl = document.createElement('video');
+      videoEl.controls = true;
+      videoEl.playsInline = true;
+      videoEl.style.width = '100%';
+      videoEl.style.height = '100%';
+      videoEl.setAttribute('autoplay', '');
+      playerHost.appendChild(videoEl);
+      currentPlayer = videoEl;
+      
+      if(streamObj.type === 'hls' && Hls.isSupported()) {
+        const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
+        hls.loadSource(streamObj.url);
+        hls.attachMedia(videoEl);
+        currentPlayer = hls;
+        currentAdapter = 'hls.js';
+        await new Promise((res,rej) => {
+          hls.on(Hls.Events.MANIFEST_PARSED, () => res());
+          hls.on(Hls.Events.ERROR, (_, data) => { if(data.fatal) rej(data); });
+          setTimeout(() => rej(new Error('HLS timeout')), 12000);
+        });
+        if(hls.levels?.length) {
+          qualityLevels = hls.levels.map((l,i) => ({ label: l.height ? `${l.height}p` : 'Auto', value: i }));
+          onQualityChange = (idx) => { hls.currentLevel = idx; };
+        }
+      } else if(streamObj.type === 'dash' && dashjs) {
+        const dashPlayer = dashjs.MediaPlayer().create();
+        dashPlayer.initialize(videoEl, streamObj.url, true);
+        currentPlayer = dashPlayer;
+        currentAdapter = 'dash.js';
+        await new Promise(res => setTimeout(res, 1500));
+      } else {
+        videoEl.src = streamObj.url;
+        await videoEl.play();
+        currentAdapter = 'native';
+      }
+      loadingOverlay.classList.remove('active');
+      showToast(`✅ ${streamObj.type.toUpperCase()} stream ready`, 1800);
+    }
+    
+    async function changeStream(index) {
+      if(!streamsRaw.length) return;
+      currentStreamIndex = (index + streamsRaw.length) % streamsRaw.length;
+      const stream = streamsRaw[currentStreamIndex];
+      activeStreamObj = stream;
+      streamLabelSpan.innerText = `Stream ${currentStreamIndex+1}`;
+      channelNameSpan.innerText = stream.type === 'embed' ? 'Embed Source' : 'Live Channel';
+      playGen++;
+      await playStream(stream, playGen);
+      updateStreamListUI();
+      showToast(`Switched to source ${currentStreamIndex+1} (${Math.round(stream.speed || 0)}ms)`);
+    }
+    
+    function updateStreamListUI() {
+      streamListSheet.innerHTML = streamsRaw.map((s, idx) => `<div class="stream-option ${idx === currentStreamIndex ? 'active' : ''}" data-idx="${idx}">
+        <span>${s.type === 'embed' ? '📺 Embed' : '📡 ' + (s.type).toUpperCase()}</span>
+        <span style="font-size:11px;">⚡${Math.round(s.speed||0)}ms</span>
+      </div>`).join('');
+      document.querySelectorAll('.stream-option').forEach(el => {
+        el.addEventListener('click', (e) => {
+          const idx = parseInt(el.dataset.idx);
+          if(!isNaN(idx)) changeStream(idx);
+          bottomSheet.classList.remove('open');
+        });
+      });
+      if(qualityLevels.length && onQualityChange) {
+        qualityOptionsDiv.innerHTML = qualityLevels.map((q,i) => `<div class="quality-option" data-qidx="${i}">${q.label}</div>`).join('');
+        document.querySelectorAll('.quality-option').forEach(qel => {
+          qel.addEventListener('click', (e) => {
+            const qidx = parseInt(qel.dataset.qidx);
+            if(onQualityChange) onQualityChange(qidx);
+            showToast(`Quality: ${qualityLevels[qidx].label}`);
+            bottomSheet.classList.remove('open');
+          });
+        });
+      } else qualityOptionsDiv.innerHTML = '<div>Auto (adaptive)</div>';
+    }
+    
+    // ---- Cast + AirPlay ----
+    let castSession = null;
+    window.__onGCastApiAvailable = (loaded) => {
+      if(loaded) {
+        const context = cast.framework.CastContext.getInstance();
+        context.setOptions({ receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID });
+        castBtn.addEventListener('click', () => {
+          if(!currentPlayer || !(currentPlayer instanceof HTMLVideoElement)) { showToast('Cast only works for direct video'); return; }
+          const session = context.getCurrentSession();
+          if(session) session.endSession();
+          else {
+            context.requestSession().then(s => {
+              const mediaInfo = new chrome.cast.media.MediaInfo(currentPlayer.src, 'video/mp4');
+              const request = new chrome.cast.media.LoadRequest(mediaInfo);
+              s.loadMedia(request);
+            }).catch(() => showToast('Cast failed'));
+          }
+        });
+      }
+    };
+    if(castBtn) castBtn.addEventListener('click', () => { showToast('Try Chromecast via browser menu', 1500); });
+    
+    // ---- Fullscreen & bottom sheet ----
+    function toggleFullscreen() {
+      const elem = document.documentElement;
+      if(!document.fullscreenElement) elem.requestFullscreen().catch(()=>showToast('Fullscreen blocked'));
+      else document.exitFullscreen();
+    }
+    fullscreenBtn.addEventListener('click', toggleFullscreen);
+    settingsBtn.addEventListener('click', () => { bottomSheet.classList.add('open'); resetAutoHide(); });
+    closeSheetBtn.addEventListener('click', () => bottomSheet.classList.remove('open'));
+    prevStreamBtn.addEventListener('click', () => changeStream(currentStreamIndex-1));
+    nextStreamBtn.addEventListener('click', () => changeStream(currentStreamIndex+1));
+    refreshBtn.addEventListener('click', () => { if(activeStreamObj) playStream(activeStreamObj, playGen); showToast('Refreshing stream...'); });
+    
+    // ---- initial loader & auto test ----
+    (async function init() {
+      loadingOverlay.classList.add('active');
+      loadTextSpan.innerText = '🔍 Auto-testing streams (fastest wins)...';
+      streamsRaw = await prepareStreams();
+      if(streamsRaw.length === 0) {
+        loadingOverlay.classList.remove('active');
+        showToast('No streams available. Add ?mora=url');
+        return;
+      }
+      await fetchMetadataFromEmbedder();
+      updateEPGDisplay();
+      setInterval(updateEPGDisplay, 30000);
+      await changeStream(0);
+      loadingOverlay.classList.remove('active');
+      resetAutoHide();
+    })();
+    
+    // Fix CSS bugs: responsive & gesture
+    document.addEventListener('click', (e) => { if(!bottomSheet.contains(e.target) && !settingsBtn.contains(e.target)) bottomSheet.classList.remove('open'); });
+  })();
 </script>
 </body>
 </html>
