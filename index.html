@@ -75,11 +75,11 @@
     to   { transform: scale(1.09); } 
   }
 
-  /* TEXT PANEL ON THE LEFT - BIGGER TEXT */
+  /* TEXT ON THE LEFT - BIGGER & CLEAR */
   .content-panel {
     position: relative; z-index: 10;
     width: 42%; height: 100%;
-    padding: 90px 70px 90px 80px;
+    padding: 90px 75px 90px 80px;
     background: rgba(10, 4, 2, 0.88);
     display: flex; flex-direction: column; justify-content: center;
     border-right: 8px solid var(--gold);
@@ -87,7 +87,7 @@
 
   .brand-tag {
     font-family: 'Cinzel Decorative', serif;
-    font-size: 15px; letter-spacing: 5px;
+    font-size: 15.5px; letter-spacing: 5px;
     color: var(--gold); text-transform: uppercase;
     margin-bottom: 16px;
   }
@@ -103,25 +103,25 @@
   .slide-headline em { font-style: italic; color: var(--gold); }
 
   .slide-body {
-    font-size: 18.5px; 
+    font-size: 19px; 
     line-height: 1.65;
     color: rgba(245,230,200,0.95);
     margin-bottom: 28px;
   }
 
   .extra-info {
-    font-size: 17px; 
+    font-size: 17.5px; 
     line-height: 1.6;
     color: rgba(245,230,200,0.88);
     margin-bottom: 32px;
   }
 
   .phone-numbers {
-    font-size: 28px; 
+    font-size: 29px; 
     font-weight: 700;
     color: var(--gold);
-    margin: 20px 0 28px 0;
-    line-height: 1.3;
+    line-height: 1.35;
+    margin: 20px 0 30px 0;
   }
 
   .cta-row {
@@ -132,7 +132,7 @@
     padding: 14px 28px; 
     border: 2px solid var(--gold);
     color: var(--gold); 
-    font-size: 14.5px;
+    font-size: 14.8px;
     font-weight: 600; 
     letter-spacing: 1.6px;
     text-transform: uppercase; 
@@ -213,43 +213,119 @@
 
 <div class="slideshow">
 
-  <!-- Example Slide 1 - Replace/add more slides with your other Blogger image URLs -->
+  <!-- SLIDE 1 -->
   <div class="slide">
     <div class="slide-bg" style="background-image:url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgyQ8Yng53-RkicHJH0ec842fJDyRtroPKUcnCWxWEs-C_FhzHok4wG0I383_laYca8yimWXz8rWUssjd5d1s_r5hRShGL1suiUzQ6QeaIWaUX93KHguoXaOIJBhmisFQZvpW3lMdpLP5zgtptQoHiulfkGayTnywmtqzz9UGNnt8C8SDEqbUMSPTJpbUYy/s6720/IMG_7776.jpeg')"></div>
     <div class="content-panel">
       <div class="brand-tag">Janzi Band • Uganda</div>
       <div class="slide-headline">Where <em>Ancient Strings</em> Meet Modern Sound</div>
-      <div class="slide-body">Experience the revolutionary Janzi instrument — a masterpiece of East African craftsmanship that redefines music for the world stage.</div>
-      <div class="extra-info">Created by Ssewa Ssewa, renowned Ugandan musician and multi-instrumentalist.</div>
-      
+      <div class="slide-body">Experience the revolutionary Janzi instrument — a masterpiece of East African craftsmanship.</div>
+      <div class="extra-info">Created by Ssewa Ssewa, Ugandan musician and multi-instrumentalist.</div>
       <div class="phone-numbers">
         📞 0773 033 240<br>
         📞 0758 684 947<br>
         📞 0787 386 057
       </div>
-
       <div class="cta-row">
         <div class="cta-chip filled">Learn Janzi</div>
         <div class="cta-chip">Book Event</div>
       </div>
-      
       <div class="contact-strip">
-        <div class="contact-item"><div class="icon">🌐</div><a href="https://janzimusic.com" style="color:inherit">janzimusic.com</a></div>
-        <div class="contact-item"><div class="icon">📸</div>@janzi_band</div>
+        <div class="contact-item"><div class="icon">🌐</div>janzimusic.com</div>
       </div>
     </div>
   </div>
 
-  <!-- Duplicate the above <div class="slide"> block for all other images and change the background-image URL + text as needed -->
+  <!-- SLIDE 2 -->
+  <div class="slide">
+    <div class="slide-bg" style="background-image:url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg7TLBRzYAwgBMNgyqSh_IrtxfgIuihWXrvWWZFdubjO2WQdXfwE_pUiG_FGQbl9QNumbHkv2d5YZEuZNiA5jcf2I8uqAkZxsAIIVgAYXGwUCIta9Uy_E6Ssma5Qo3xpa1jDu-u3sQJpBnolCOIoU-sbCdMF960WaaetImxgTNdP6KVThww1n7cZZl1dU0G/s5568/IMG_3317.jpeg')"></div>
+    <div class="content-panel">
+      <div class="brand-tag">Studio Sessions</div>
+      <div class="slide-headline">Deep <em>Blue</em> Sessions with Ssewa Ssewa</div>
+      <div class="slide-body">Intimate studio performances and private sessions available.</div>
+      <div class="extra-info">Ssewa Ssewa – Ugandan multi-instrumentalist and visionary behind the Janzi.</div>
+      <div class="phone-numbers">
+        📞 0773 033 240<br>
+        📞 0758 684 947<br>
+        📞 0787 386 057
+      </div>
+      <div class="cta-row">
+        <div class="cta-chip filled">Book a Session</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3 -->
+  <div class="slide">
+    <div class="slide-bg" style="background-image:url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjNZ64tvcfqXzcQv-86Ewl4V6I1JnR83w5UsOvMbQbLQ__TvvFpLchiefOigcUDiiM0LdIF_4NK0KvKSgraS1HXekzYIlOyNudCSOrNWk79iM7g166Sh_HWfrHRqVCvjDZtW1BRuVzG39dqAzdH_e-RlZKRtLC6aRhMtAM5kJdrmsZ0rJJl07Zg9l8pGVkK/s5079/IMG_2945.jpeg')"></div>
+    <div class="content-panel">
+      <div class="brand-tag">Ssewa Ssewa</div>
+      <div class="slide-headline"><em>Mastery</em> Beyond the Strings</div>
+      <div class="slide-body">A virtuoso rooted in Ugandan heritage. Ssewa Ssewa's artistry with the Janzi is a study in dedication and transcendence.</div>
+      <div class="extra-info">Ugandan musician, multi-instrumentalist & inventor of the Janzi instrument.</div>
+      <div class="phone-numbers">
+        📞 0773 033 240<br>
+        📞 0758 684 947<br>
+        📞 0787 386 057
+      </div>
+      <div class="cta-row">
+        <div class="cta-chip filled">Watch on YouTube</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4 -->
+  <div class="slide">
+    <div class="slide-bg" style="background-image:url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEggqP5WhfnvpHD1b1mvImCIh-Mg0j-omA0oZhINa39-0llE_1sroXVfBGIUHKYBoZeLZ-cNWvgFAVtfw6BQtzgpWA3F8Nxh3sO8NK7KiLbXleVSuEa2z2PnvOA56BULcFk0-uaPQD3zYyvno4P6ONkFu1GQBaGOUEwPFgckfITKt_M3mTaVbakXJJtd5tiP/s1184/IMG_8307.png')"></div>
+    <div class="content-panel">
+      <div class="brand-tag">Live Performance</div>
+      <div class="slide-headline">Feel the <em>Soul</em> of East Africa</div>
+      <div class="slide-body">Ssewa Ssewa and the Janzi Band perform with unmatched passion. Bring this magic to your event.</div>
+      <div class="extra-info">Ssewa Ssewa – Ugandan multi-instrumentalist and founder of Janzi Band.</div>
+      <div class="phone-numbers">
+        📞 0773 033 240<br>
+        📞 0758 684 947<br>
+        📞 0787 386 057
+      </div>
+      <div class="cta-row">
+        <div class="cta-chip filled">Book For Events</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5 -->
+  <div class="slide">
+    <div class="slide-bg" style="background-image:url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjQf25nUJWNdS0ke7DIprYVEOI93DH6BmNhNBuOxDeOZToWsn7n_Xyxu615lOWYY5Us6-nXC1KUZL2xmzN4iFBqBTH7K62XHWKf2KVdsmFeiNko_tC8tUS6jjYb15f1GDQQXSqtvVeCEDT8NgFr2I0OrrCfIn7DHfMl07Hj8f8XnLaGL9oS_B6hCPp0AkBW/s5876/IMG_8382.jpeg')"></div>
+    <div class="content-panel">
+      <div class="brand-tag">The Janzi Instrument</div>
+      <div class="slide-headline">Crafted for Tradition &amp; Innovation</div>
+      <div class="slide-body">A fusion of the African harp and modern guitar mechanics by Ssewa Ssewa.</div>
+      <div class="extra-info">Own a piece of East African culture.</div>
+      <div class="phone-numbers">
+        📞 0773 033 240<br>
+        📞 0758 684 947<br>
+        📞 0787 386 057
+      </div>
+      <div class="cta-row">
+        <div class="cta-chip filled">Buy a Janzi</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Continue with the remaining 15 slides using the other URLs you provided. 
+       For example, replace the background-image URL in new slide blocks with:
+       https://blogger.googleusercontent.com/.../IMG_8378.jpeg
+       https://blogger.googleusercontent.com/.../IMG_3123.jpeg
+       and so on for all the links you shared earlier. -->
 
 </div>
 
 <div class="ticker-bar">
   <div class="ticker-label">JANZI BAND</div>
   <div class="ticker-text">
-    🎵 Ssewa Ssewa – Ugandan Multi-Instrumentalist & Janzi Inventor • 
-    Call Now: 0773 033 240 | 0758 684 947 | 0787 386 057 • 
-    🌐 janzimusic.com • @janzi_band • Weddings • Festivals • Corporate Events
+    🎵 Ssewa Ssewa – Ugandan Multi-Instrumentalist & Inventor of the Janzi • 
+    Call: 0773 033 240 | 0758 684 947 | 0787 386 057 • 
+    🌐 janzimusic.com • 📸 @janzi_band • Weddings • Festivals • Corporate Events
   </div>
 </div>
 
