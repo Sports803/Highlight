@@ -23,70 +23,38 @@
     font-family: 'Raleway', sans-serif;
   }
 
-  .slideshow { position: relative; width: 100%; height: 100%; }
-
-  .slide {
-    position: absolute; inset: 0;
-    opacity: 0;
-    animation: slideLife var(--slide-duration) linear infinite;
-    display: flex; align-items: center;
-  }
-
-  /* All 20 slides use the same image – staggered timing only */
-  .slide:nth-child(1)  { animation-delay: 0s; }
-  .slide:nth-child(2)  { animation-delay: calc(1 * var(--slide-duration)); }
-  .slide:nth-child(3)  { animation-delay: calc(2 * var(--slide-duration)); }
-  .slide:nth-child(4)  { animation-delay: calc(3 * var(--slide-duration)); }
-  .slide:nth-child(5)  { animation-delay: calc(4 * var(--slide-duration)); }
-  .slide:nth-child(6)  { animation-delay: calc(5 * var(--slide-duration)); }
-  .slide:nth-child(7)  { animation-delay: calc(6 * var(--slide-duration)); }
-  .slide:nth-child(8)  { animation-delay: calc(7 * var(--slide-duration)); }
-  .slide:nth-child(9)  { animation-delay: calc(8 * var(--slide-duration)); }
-  .slide:nth-child(10){ animation-delay: calc(9 * var(--slide-duration)); }
-  .slide:nth-child(11){ animation-delay: calc(10* var(--slide-duration)); }
-  .slide:nth-child(12){ animation-delay: calc(11* var(--slide-duration)); }
-  .slide:nth-child(13){ animation-delay: calc(12* var(--slide-duration)); }
-  .slide:nth-child(14){ animation-delay: calc(13* var(--slide-duration)); }
-  .slide:nth-child(15){ animation-delay: calc(14* var(--slide-duration)); }
-  .slide:nth-child(16){ animation-delay: calc(15* var(--slide-duration)); }
-  .slide:nth-child(17){ animation-delay: calc(16* var(--slide-duration)); }
-  .slide:nth-child(18){ animation-delay: calc(17* var(--slide-duration)); }
-  .slide:nth-child(19){ animation-delay: calc(18* var(--slide-duration)); }
-  .slide:nth-child(20){ animation-delay: calc(19* var(--slide-duration)); }
-
-  @keyframes slideLife {
-    0% { opacity: 0; } 
-    5% { opacity: 1; }
-    90% { opacity: 1; } 
-    98% { opacity: 0; } 
-    100% { opacity: 0; }
-  }
-
-  /* SINGLE IMAGE ON THE RIGHT – same for all slides */
-  .slide-bg {
-    position: absolute; right: 0; top: 0;
+  /* Fixed background image on the RIGHT */
+  .fixed-bg {
+    position: fixed;
+    right: 0; top: 0;
     width: 58%; height: 100%;
     background-image: url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjNZ64tvcfqXzcQv-86Ewl4V6I1JnR83w5UsOvMbQbLQ__TvvFpLchiefOigcUDiiM0LdIF_4NK0KvKSgraS1HXekzYIlOyNudCSOrNWk79iM7g166Sh_HWfrHRqVCvjDZtW1BRuVzG39dqAzdH_e-RlZKRtLC6aRhMtAM5kJdrmsZ0rJJl07Zg9l8pGVkK/s5079/IMG_2945.jpeg');
-    background-size: cover; 
+    background-size: cover;
     background-position: center;
     filter: brightness(0.78) saturate(1.25);
-    animation: subtleZoom 14s ease-in-out infinite alternate;
+    z-index: 1;
   }
 
-  @keyframes subtleZoom { 
-    from { transform: scale(1.02); } 
-    to   { transform: scale(1.09); } 
-  }
-
-  /* TEXT PANEL ON THE LEFT – BIG & CLEAR */
-  .content-panel {
-    position: relative; z-index: 10;
+  /* Text slides on the LEFT */
+  .text-slides {
+    position: fixed;
+    left: 0; top: 0;
     width: 42%; height: 100%;
+    z-index: 10;
+    overflow: hidden;
+  }
+
+  .text-slide {
+    position: absolute; inset: 0;
+    opacity: 0;
     padding: 90px 75px 90px 80px;
     background: rgba(10, 4, 2, 0.88);
     display: flex; flex-direction: column; justify-content: center;
     border-right: 8px solid var(--gold);
+    transition: opacity 1.2s ease;
   }
+
+  .text-slide.active { opacity: 1; }
 
   .brand-tag {
     font-family: 'Cinzel Decorative', serif;
@@ -185,7 +153,7 @@
     letter-spacing: 5px; 
   }
 
-  /* Ticker */
+  /* Bottom Ticker */
   .ticker-bar {
     position: fixed; bottom: 20px; left: 20px; right: 20px; z-index: 100;
     height: 44px; background: rgba(212,160,23,0.96);
@@ -209,136 +177,84 @@
 </head>
 <body>
 
+<div class="fixed-bg"></div>
+
 <div class="top-bar">
   <div class="logo-text">JANZI</div>
   <div style="color:var(--gold); font-size:14px; letter-spacing:4px;">EAST AFRICAN MUSIC EXPERIENCE</div>
 </div>
 
-<div class="slideshow">
+<div class="text-slides">
 
-  <!-- All 20 slides use the SAME image on the right -->
-  <!-- SLIDE 1 -->
-  <div class="slide">
-    <div class="slide-bg"></div>
-    <div class="content-panel">
-      <div class="brand-tag">Janzi Band • Uganda</div>
-      <div class="slide-headline">Where <em>Ancient Strings</em> Meet Modern Sound</div>
-      <div class="slide-body">Experience the revolutionary Janzi instrument — a masterpiece of East African craftsmanship that redefines music for the world stage.</div>
-      <div class="extra-info">Created by Ssewa Ssewa, renowned Ugandan musician and multi-instrumentalist.</div>
-      <div class="phone-numbers">
-        📞 0773 033 240<br>
-        📞 0758 684 947<br>
-        📞 0787 386 057
-      </div>
-      <div class="cta-row">
-        <div class="cta-chip filled">Learn Janzi</div>
-        <div class="cta-chip">Book Event</div>
-      </div>
-      <div class="contact-strip">
-        <div class="contact-item"><div class="icon">🌐</div>janzimusic.com</div>
-      </div>
+  <!-- Text Slide 1 -->
+  <div class="text-slide active">
+    <div class="brand-tag">Janzi Band • Uganda</div>
+    <div class="slide-headline">Where <em>Ancient Strings</em> Meet Modern Sound</div>
+    <div class="slide-body">Experience the revolutionary Janzi instrument — a masterpiece of East African craftsmanship that redefines music for the world stage.</div>
+    <div class="extra-info">Created by Ssewa Ssewa, renowned Ugandan musician and multi-instrumentalist.</div>
+    <div class="phone-numbers">
+      📞 0773 033 240<br>
+      📞 0758 684 947<br>
+      📞 0787 386 057
+    </div>
+    <div class="cta-row">
+      <div class="cta-chip filled">Learn Janzi</div>
+      <div class="cta-chip">Book Event</div>
+    </div>
+    <div class="contact-strip">
+      <div class="contact-item"><div class="icon">🌐</div>janzimusic.com</div>
     </div>
   </div>
 
-  <!-- SLIDE 2 -->
-  <div class="slide">
-    <div class="slide-bg"></div>
-    <div class="content-panel">
-      <div class="brand-tag">Ssewa Ssewa</div>
-      <div class="slide-headline"><em>Mastery</em> Beyond the Strings</div>
-      <div class="slide-body">A virtuoso rooted in Ugandan heritage. Ssewa Ssewa's artistry with the Janzi is a study in dedication, culture and transcendence.</div>
-      <div class="extra-info">Ugandan musician, multi-instrumentalist & inventor of the Janzi instrument.</div>
-      <div class="phone-numbers">
-        📞 0773 033 240<br>
-        📞 0758 684 947<br>
-        📞 0787 386 057
-      </div>
-      <div class="cta-row">
-        <div class="cta-chip filled">Watch Performances</div>
-      </div>
+  <!-- Text Slide 2 -->
+  <div class="text-slide">
+    <div class="brand-tag">Ssewa Ssewa</div>
+    <div class="slide-headline"><em>Mastery</em> Beyond the Strings</div>
+    <div class="slide-body">A virtuoso rooted in Ugandan heritage. Ssewa Ssewa's artistry with the Janzi is a study in dedication and transcendence.</div>
+    <div class="extra-info">Ugandan musician, multi-instrumentalist & inventor of the Janzi instrument.</div>
+    <div class="phone-numbers">
+      📞 0773 033 240<br>
+      📞 0758 684 947<br>
+      📞 0787 386 057
+    </div>
+    <div class="cta-row">
+      <div class="cta-chip filled">Watch Performances</div>
     </div>
   </div>
 
-  <!-- SLIDE 3 -->
-  <div class="slide">
-    <div class="slide-bg"></div>
-    <div class="content-panel">
-      <div class="brand-tag">Live Performance</div>
-      <div class="slide-headline">Feel the <em>Soul</em> of East Africa Live</div>
-      <div class="slide-body">Ssewa Ssewa and the Janzi Band perform with unmatched passion — eyes closed, strings singing, hearts open. Bring this magic to your event.</div>
-      <div class="extra-info">Ssewa Ssewa – Ugandan multi-instrumentalist and founder of Janzi Band.</div>
-      <div class="phone-numbers">
-        📞 0773 033 240<br>
-        📞 0758 684 947<br>
-        📞 0787 386 057
-      </div>
-      <div class="cta-row">
-        <div class="cta-chip filled">Book For Events</div>
-      </div>
+  <!-- Text Slide 3 -->
+  <div class="text-slide">
+    <div class="brand-tag">Live Performance</div>
+    <div class="slide-headline">Feel the <em>Soul</em> of East Africa</div>
+    <div class="slide-body">Ssewa Ssewa and the Janzi Band perform with unmatched passion. Bring this magic to your wedding, festival or corporate event.</div>
+    <div class="extra-info">Ssewa Ssewa – Ugandan multi-instrumentalist and founder of Janzi Band.</div>
+    <div class="phone-numbers">
+      📞 0773 033 240<br>
+      📞 0758 684 947<br>
+      📞 0787 386 057
+    </div>
+    <div class="cta-row">
+      <div class="cta-chip filled">Book For Your Event</div>
     </div>
   </div>
 
-  <!-- SLIDE 4 -->
-  <div class="slide">
-    <div class="slide-bg"></div>
-    <div class="content-panel">
-      <div class="brand-tag">The Instrument</div>
-      <div class="slide-headline">The <em>Janzi</em> — Crafted for Tradition & Innovation</div>
-      <div class="slide-body">A fusion of the African harp and modern guitar mechanics. Tuned to perfection, the Janzi bridges cultures and generations through music.</div>
-      <div class="extra-info">Created by Ssewa Ssewa, Ugandan musician and multi-instrumentalist.</div>
-      <div class="phone-numbers">
-        📞 0773 033 240<br>
-        📞 0758 684 947<br>
-        📞 0787 386 057
-      </div>
-      <div class="cta-row">
-        <div class="cta-chip filled">Buy a Janzi</div>
-      </div>
+  <!-- Text Slide 4 -->
+  <div class="text-slide">
+    <div class="brand-tag">The Janzi Instrument</div>
+    <div class="slide-headline">Crafted for Tradition &amp; Innovation</div>
+    <div class="slide-body">A fusion of the African harp and modern guitar mechanics. Tuned to perfection by Ssewa Ssewa.</div>
+    <div class="extra-info">Own a piece of East African culture today.</div>
+    <div class="phone-numbers">
+      📞 0773 033 240<br>
+      📞 0758 684 947<br>
+      📞 0787 386 057
+    </div>
+    <div class="cta-row">
+      <div class="cta-chip filled">Buy a Janzi</div>
     </div>
   </div>
 
-  <!-- SLIDE 5 -->
-  <div class="slide">
-    <div class="slide-bg"></div>
-    <div class="content-panel">
-      <div class="brand-tag">Studio Sessions</div>
-      <div class="slide-headline">Deep <em>Blue</em> Sessions — The Sound of Now</div>
-      <div class="slide-body">In smoke and silence, the Janzi speaks. Private studio experiences available for exclusive bookings.</div>
-      <div class="extra-info">Ssewa Ssewa – Ugandan multi-instrumentalist and visionary.</div>
-      <div class="phone-numbers">
-        📞 0773 033 240<br>
-        📞 0758 684 947<br>
-        📞 0787 386 057
-      </div>
-      <div class="cta-row">
-        <div class="cta-chip filled">Book a Session</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SLIDE 6 to 20 – same image, different text variations for variety -->
-  <!-- You can copy-paste and slightly change the text inside each slide if desired, but all use the same background image -->
-
-  <div class="slide"><div class="slide-bg"></div><div class="content-panel">
-    <div class="brand-tag">Live at The Live Room</div>
-    <div class="slide-headline">Tradition Meets <em>Technology</em></div>
-    <div class="slide-body">The Janzi Band blends ancient harp melodies with electronic beats. A fusion experience unlike any other.</div>
-    <div class="extra-info">Ssewa Ssewa – Ugandan musician and multi-instrumentalist.</div>
-    <div class="phone-numbers">📞 0773 033 240<br>📞 0758 684 947<br>📞 0787 386 057</div>
-    <div class="cta-row"><div class="cta-chip filled">Book Now</div></div>
-  </div></div>
-
-  <div class="slide"><div class="slide-bg"></div><div class="content-panel">
-    <div class="brand-tag">DJ & Janzi Fusion</div>
-    <div class="slide-headline">The <em>Purple Haze</em> of African Fusion</div>
-    <div class="slide-body">Rane meets Janzi. Electronic rhythms with ancient tones of the East African harp.</div>
-    <div class="extra-info">Ssewa Ssewa – Ugandan multi-instrumentalist.</div>
-    <div class="phone-numbers">📞 0773 033 240<br>📞 0758 684 947<br>📞 0787 386 057</div>
-    <div class="cta-row"><div class="cta-chip filled">Book Now</div></div>
-  </div></div>
-
-  <!-- Remaining slides follow the same pattern. For brevity, the structure is repeated with the single image. 
-       In a real file you would have 20 full slide blocks, all with the same background image. -->
+  <!-- Add more text slides here if you want (up to 20). The image stays the same. -->
 
 </div>
 
@@ -347,9 +263,23 @@
   <div class="ticker-text">
     🎵 Ssewa Ssewa – Ugandan Multi-Instrumentalist & Inventor of the Janzi • 
     Call Now: 0773 033 240 | 0758 684 947 | 0787 386 057 • 
-    🌐 janzimusic.com • 📸 @janzi_band • Weddings • Festivals • Corporate Events • Private Sessions
+    🌐 janzimusic.com • 📸 @janzi_band • Weddings • Festivals • Corporate Events
   </div>
 </div>
+
+<script>
+  // Simple JavaScript to cycle through text slides only
+  const slides = document.querySelectorAll('.text-slide');
+  let current = 0;
+
+  function showNextSlide() {
+    slides[current].classList.remove('active');
+    current = (current + 1) % slides.length;
+    slides[current].classList.add('active');
+  }
+
+  setInterval(showNextSlide, 10000); // Change text every 10 seconds
+</script>
 
 </body>
 </html>
