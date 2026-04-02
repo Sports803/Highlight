@@ -253,13 +253,13 @@ display:flex;flex-direction:column;
 #epg-sheet.on #epg-inner{transform:translateY(0)}
 #epg-head{padding:0 20px 12px;border-bottom:1px solid var(–b1);flex-shrink:0}
 #epg-list{overflow-y:auto;flex:1;padding:8px 0}
-.epg-item{display:flex;align-items:center;gap:12px;padding:10px 20px;transition:background .15s;cursor:pointer}
+.epg-item{display:flex;align-items:center;gap:10px;padding:8px 20px;transition:background .15s;cursor:pointer}
 .epg-item:hover{background:var(–b1)}
 .epg-item.now{background:var(–red-dim)}
 .epg-time{font-family:‘Rajdhani’,sans-serif;font-size:12px;font-weight:600;color:var(–t3);flex-shrink:0;width:42px}
-.epg-prog{flex:1}
-.epg-prog-name{font-size:13px;font-weight:500;color:var(–t1)}
-.epg-prog-cat{font-size:11px;color:var(–t3);margin-top:1px}
+.epg-prog{flex:1;min-width:0}
+.epg-prog-name{font-size:13px;font-weight:500;color:var(–t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.epg-prog-cat{font-size:11px;color:var(–t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .epg-now-badge{font-size:10px;background:var(–red);color:#fff;padding:2px 6px;border-radius:3px;flex-shrink:0;font-weight:600}
 
 /* ─── Init Placeholder ───────────── */
@@ -369,7 +369,7 @@ opacity:0;pointer-events:none;transition:opacity .2s,transform .2s
   <div class="c-spacer"></div>
   <button class="c-btn" onclick="SP.openEPG()" title="What's on">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-    <span class="c-lbl">EPG</span>
+    <span class="c-lbl">Posts</span>
   </button>
   <button class="c-btn cast-btn" id="btn-cast" onclick="SP.startCast()" title="Cast / AirPlay">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/><line x1="2" y1="20" x2="2.01" y2="20"/></svg>
@@ -452,7 +452,7 @@ opacity:0;pointer-events:none;transition:opacity .2s,transform .2s
   <div id="epg-inner">
     <div id="epg-head">
       <div class="sheet-handle"></div>
-      <div class="sheet-ttl" style="margin-bottom:0">📺 Now &amp; Next</div>
+      <div class="sheet-ttl" style="margin-bottom:0" id="epg-sheet-ttl">📋 Related Posts</div>
     </div>
     <div id="epg-list"></div>
   </div>
@@ -510,23 +510,8 @@ const CFG = {
     { name: 'Backup', icon: '🔄' }, { name: 'Alt', icon: '🌐' },
     { name: 'SD', icon: '📡' }, { name: 'Mirror', icon: '🔁' },
   ],
-  EPG: [ // Sample EPG – override from URL param epg=json
-    { time: '00:00', name: 'Sports Highlights', cat: 'Magazine', dur: 60 },
-    { time: '01:00', name: 'UEFA Champions League', cat: 'Football', dur: 120 },
-    { time: '03:00', name: 'NBA Overtime', cat: 'Basketball', dur: 90 },
-    { time: '04:30', name: 'Formula 1 Qualifying', cat: 'Motorsport', dur: 60 },
-    { time: '05:30', name: 'Boxing Night', cat: 'Boxing', dur: 180 },
-    { time: '08:30', name: 'Premier League Morning', cat: 'Football', dur: 120 },
-    { time: '10:30', name: 'Tennis Live', cat: 'Tennis', dur: 120 },
-    { time: '12:30', name: 'Midday Sports Desk', cat: 'News', dur: 30 },
-    { time: '13:00', name: 'La Liga', cat: 'Football', dur: 120 },
-    { time: '15:00', name: 'NBA Primetime', cat: 'Basketball', dur: 150 },
-    { time: '17:30', name: 'Serie A Evening', cat: 'Football', dur: 120 },
-    { time: '19:30', name: 'Evening Sports Wrap', cat: 'Magazine', dur: 30 },
-    { time: '20:00', name: 'Champions League Live', cat: 'Football', dur: 120 },
-    { time: '22:00', name: 'Late Night Highlights', cat: 'Magazine', dur: 60 },
-    { time: '23:00', name: 'UFC / MMA Live', cat: 'MMA', dur: 60 },
-  ],
+  BLOG: 'https://sports803livestream.blogspot.com',
+  FEED_MAX: 20,
 };
 
 const lbl = i => i < CFG.LABELS.length ? CFG.LABELS[i] : { name: `Stream ${i + 1}`, icon: '📺' };
@@ -695,82 +680,228 @@ function updateViewers() {
 setInterval(updateViewers, 8000);
 updateViewers();
 
-// ── EPG ───────────────────────────────────
-function getEPGNow() {
-  const now = new Date();
-  const mins = now.getHours() * 60 + now.getMinutes();
-  let cur = null, next = null;
-  for (let i = 0; i < CFG.EPG.length; i++) {
-    const e = CFG.EPG[i];
-    const [h, m] = e.time.split(':').map(Number);
-    const start = h * 60 + m;
-    const end = start + (e.dur || 60);
-    if (mins >= start && mins < end) { cur = { ...e, progress: Math.round((mins - start) / (e.dur || 60) * 100) }; next = CFG.EPG[i + 1] || null; break; }
+// ── Blog Feed & Post Meta ─────────────────
+// State shared between post meta + EPG
+let _blogPosts = [];       // parsed Blogger feed entries
+let _postTitle = '';       // current post title (from parent page)
+let _postImage = '';       // current post thumbnail
+let _postUrl = '';         // current post URL
+let _feedLoaded = false;
+
+// Extract thumbnail from a Blogger feed entry's content HTML
+function extractThumb(entry) {
+  // 1. media$thumbnail (Blogger sets this for the first image)
+  if (entry.media$thumbnail?.url) {
+    return entry.media$thumbnail.url.replace(/\/s[0-9]+-[a-z]\//, '/s400/').replace(/\/s[0-9]+\//, '/s400/');
   }
-  return { cur, next };
+  // 2. First <img> inside content
+  const content = entry.content?.$t || entry.summary?.$t || '';
+  const m = content.match(/<img[^>]+src=["']([^"']+)["']/i);
+  if (m && m[1] && !m[1].includes('profile') && !m[1].includes('avatar')) {
+    return m[1];
+  }
+  return null;
 }
 
+// Extract categories/labels from a feed entry
+function extractLabels(entry) {
+  if (!entry.category) return [];
+  return entry.category.map(c => c.term).filter(Boolean);
+}
+
+// Get the alternate link from a feed entry
+function extractUrl(entry) {
+  const link = (entry.link || []).find(l => l.rel === 'alternate');
+  return link?.href || '';
+}
+
+// Fetch the Sports803 Blogger feed
+async function loadBlogFeed() {
+  if (_feedLoaded) return _blogPosts;
+  try {
+    const feedUrl = `${CFG.BLOG}/feeds/posts/default?alt=json&max-results=${CFG.FEED_MAX}`;
+    // Use corsproxy since we're on a different origin
+    const proxy = `https://corsproxy.io/?url=${encodeURIComponent(feedUrl)}`;
+    const ac = new AbortController();
+    const to = setTimeout(() => ac.abort(), 8000);
+    const res = await fetch(proxy, { signal: ac.signal });
+    clearTimeout(to);
+    if (!res.ok) throw new Error('Feed fetch failed');
+    const data = await res.json();
+    const entries = data?.feed?.entry || [];
+    _blogPosts = entries.map(e => ({
+      title: e.title?.$t || '',
+      url: extractUrl(e),
+      thumb: extractThumb(e),
+      labels: extractLabels(e),
+      published: e.published?.$t || '',
+      summary: (e.summary?.$t || '').replace(/<[^>]+>/g, '').slice(0, 120),
+    })).filter(p => p.title && p.url);
+    _feedLoaded = true;
+    return _blogPosts;
+  } catch (e) {
+    console.warn('[Feed]', e.message);
+    return [];
+  }
+}
+
+// Score how relevant a post is to the given title keywords
+function relevanceScore(post, keywords) {
+  const haystack = (post.title + ' ' + post.labels.join(' ')).toLowerCase();
+  let score = 0;
+  for (const kw of keywords) {
+    if (haystack.includes(kw)) score += kw.length > 3 ? 3 : 1;
+  }
+  return score;
+}
+
+// Extract search keywords from a post title
+// "Congo DR x Jamaica" → ["congo", "dr", "jamaica"]
+// Strips common filler words
+function titleToKeywords(title) {
+  const STOP = new Set(['vs', 'x', 'v', 'the', 'a', 'an', 'and', 'or', 'of', 'in', 'on', 'at', 'live', 'stream', 'watch', 'full', 'match', 'game', 'highlights', '2025', '2026', 'hd', '-']);
+  return title.toLowerCase()
+    .replace(/[^\w\s]/g, ' ')
+    .split(/\s+/)
+    .map(w => w.trim())
+    .filter(w => w.length >= 2 && !STOP.has(w));
+}
+
+// ── Post metadata from parent page ───────
+async function fetchPostMeta() {
+  try {
+    // 1. Try reading from parent page DOM (works when same-origin: blogspot.com)
+    let title = '', image = '', pageUrl = '';
+    try {
+      const pdoc = window.parent?.document;
+      if (pdoc && pdoc !== document) {
+        title = pdoc.querySelector('meta[property="og:title"]')?.content
+             || pdoc.querySelector('h1.post-title, h3.post-title, .post-title, h1')?.textContent?.trim()
+             || pdoc.title?.replace(/ [-–|].*$/, '').trim()
+             || '';
+        image = pdoc.querySelector('meta[property="og:image"]')?.content
+             || pdoc.querySelector('.post-body img, article img')?.src
+             || '';
+        pageUrl = pdoc.location?.href || '';
+      }
+    } catch { /* cross-origin — fall through */ }
+
+    // 2. URL param overrides (embed code can pass ?title= and ?thumb=)
+    const params = new URLSearchParams(location.search);
+    if (params.get('title')) title = decodeURIComponent(params.get('title'));
+    if (params.get('thumb')) image = decodeURIComponent(params.get('thumb'));
+    if (params.get('pageurl')) pageUrl = decodeURIComponent(params.get('pageurl'));
+
+    // 3. referrer as fallback for pageUrl
+    if (!pageUrl && document.referrer) pageUrl = document.referrer;
+
+    // 4. If we have a pageUrl pointing to the blog, fetch the post feed entry directly
+    if (!title && pageUrl && pageUrl.includes('sports803livestream.blogspot.com')) {
+      // Extract slug from URL: /2026/03/congo-dr-x-jamaica.html → "congo dr x jamaica"
+      const slugMatch = pageUrl.match(/\/(\d{4}\/\d{2}\/[^/?#]+)\.html/);
+      if (slugMatch) {
+        const slug = slugMatch[1].split('/').pop().replace(/-/g, ' ');
+        title = slug.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      }
+    }
+
+    // Save to state
+    _postTitle = title;
+    _postImage = image;
+    _postUrl = pageUrl;
+
+    // Apply to UI
+    if (title) {
+      const shortTitle = title.length > 38 ? title.slice(0, 36) + '…' : title;
+      D.postTitle.textContent = shortTitle;
+      D.tbChannel.textContent = title.length > 28 ? title.slice(0, 26) + '…' : title;
+    }
+    if (image && safe(image)) {
+      D.postThumb.src = image;
+      D.postThumb.onload = () => D.postThumb.classList.add('loaded');
+    }
+
+    // Now load the blog feed and build related EPG
+    loadBlogFeed().then(() => buildEPGSheet()).catch(() => {});
+
+  } catch (e) { /* silent */ }
+}
+
+// ── EPG: powered by Sports803 Blogger feed ─
+function buildEPGSheet() {
+  D.epgList.innerHTML = '';
+
+  const posts = _blogPosts;
+  if (!posts.length) {
+    D.epgList.innerHTML = '<div style="padding:20px;color:rgba(255,255,255,.3);font-size:13px;text-align:center">Loading schedule…</div>';
+    // Trigger lazy load
+    loadBlogFeed().then(p => { if (p.length) buildEPGSheet(); });
+    return;
+  }
+
+  // Determine keywords from current post title
+  const keywords = _postTitle ? titleToKeywords(_postTitle) : [];
+
+  // Sort: relevant posts first, then by publish date (newest first)
+  const scored = posts.map(p => ({ ...p, score: relevanceScore(p, keywords) }));
+  scored.sort((a, b) => b.score - a.score || new Date(b.published) - new Date(a.published));
+
+  // Header
+  const hdr = document.createElement('div');
+  hdr.style.cssText = 'padding:10px 20px 6px;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.3)';
+  hdr.textContent = keywords.length ? `Related to "${_postTitle.slice(0, 30)}"` : 'Recent Posts';
+  D.epgList.appendChild(hdr);
+
+  scored.forEach((post, idx) => {
+    const isRelated = post.score > 0;
+    const isCurrentPost = _postUrl && post.url && _postUrl.includes(post.url.replace(/^https?:\/\/[^/]+/, '').replace(/\?.*/, ''));
+    const timeStr = post.published ? new Date(post.published).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
+    const labels = post.labels.slice(0, 2).join(', ');
+
+    const div = document.createElement('div');
+    div.className = 'epg-item' + (isCurrentPost ? ' now' : '');
+    div.style.cursor = 'pointer';
+
+    // Thumbnail if available
+    const thumbHtml = post.thumb
+      ? `<img src="${post.thumb}" style="width:52px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0;background:#222" onerror="this.style.display='none'">`
+      : `<div style="width:52px;height:32px;border-radius:4px;background:#1a1a1a;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px">⚽</div>`;
+
+    div.innerHTML = `
+      ${thumbHtml}
+      <div class="epg-prog" style="flex:1;min-width:0">
+        <div class="epg-prog-name" style="${isCurrentPost ? 'color:#fff;font-weight:600' : ''}">${post.title}</div>
+        <div class="epg-prog-cat">${labels}${labels && timeStr ? ' · ' : ''}${timeStr}</div>
+      </div>
+      ${isCurrentPost ? '<div class="epg-now-badge">HERE</div>' : ''}
+      ${isRelated && !isCurrentPost ? `<div style="font-size:10px;background:rgba(68,138,255,.15);color:#448aff;border:1px solid rgba(68,138,255,.2);padding:2px 6px;border-radius:3px;flex-shrink:0;font-weight:600">Related</div>` : ''}
+    `;
+    div.addEventListener('click', () => {
+      if (post.url) window.open(post.url, '_blank');
+    });
+    D.epgList.appendChild(div);
+  });
+
+  // Scroll to current post
+  const nowEl = D.epgList.querySelector('.now');
+  if (nowEl) setTimeout(() => nowEl.scrollIntoView({ block: 'center', behavior: 'smooth' }), 300);
+
+  // Update the mini EPG bar in the info strip with the current post
+  if (_postTitle) {
+    D.epgTitle.textContent = _postTitle;
+    D.epgFill.style.width = '100%';
+  }
+}
+
+// Keep the strip updated with post title (no time-based EPG needed here)
 function updateEPG() {
-  const { cur } = getEPGNow();
-  if (cur) {
-    D.epgTitle.textContent = cur.name + (cur.cat ? ` · ${cur.cat}` : '');
-    D.epgFill.style.width = cur.progress + '%';
-  } else {
-    D.epgTitle.textContent = '—';
-    D.epgFill.style.width = '0%';
+  if (_postTitle) {
+    D.epgTitle.textContent = _postTitle;
+    D.epgFill.style.width = '100%';
   }
 }
 updateEPG();
 setInterval(updateEPG, 30000);
-
-function buildEPGSheet() {
-  const now = new Date();
-  const mins = now.getHours() * 60 + now.getMinutes();
-  D.epgList.innerHTML = '';
-  CFG.EPG.forEach(e => {
-    const [h, m] = e.time.split(':').map(Number);
-    const start = h * 60 + m;
-    const end = start + (e.dur || 60);
-    const isNow = mins >= start && mins < end;
-    const div = document.createElement('div');
-    div.className = 'epg-item' + (isNow ? ' now' : '');
-    div.innerHTML = `<div class="epg-time">${e.time}</div><div class="epg-prog"><div class="epg-prog-name">${e.name}</div><div class="epg-prog-cat">${e.cat || ''}</div></div>${isNow ? '<div class="epg-now-badge">NOW</div>' : ''}`;
-    D.epgList.appendChild(div);
-  });
-  // Scroll to NOW item
-  const nowEl = D.epgList.querySelector('.now');
-  if (nowEl) setTimeout(() => nowEl.scrollIntoView({ block: 'center', behavior: 'smooth' }), 300);
-}
-
-// ── Post metadata fetch ───────────────────
-async function fetchPostMeta() {
-  try {
-    const ref = document.referrer || refP;
-    if (!ref || !safe(ref)) return;
-    // Try Open Graph / meta tags from parent
-    const og = () => {
-      try {
-        const doc = window.parent?.document || window.opener?.document;
-        if (!doc) return null;
-        const t = doc.querySelector('meta[property="og:title"]')?.content || doc.querySelector('title')?.textContent || '';
-        const img = doc.querySelector('meta[property="og:image"]')?.content || doc.querySelector('img')?.src || '';
-        return { title: t, image: img };
-      } catch { return null; }
-    };
-    const meta = og();
-    if (meta?.title) {
-      D.postTitle.textContent = meta.title.length > 55 ? meta.title.slice(0, 52) + '…' : meta.title;
-    }
-    if (meta?.image && safe(meta.image)) {
-      D.postThumb.src = meta.image;
-      D.postThumb.onload = () => D.postThumb.classList.add('loaded');
-    }
-    // Also update top bar channel
-    if (meta?.title && meta.title.length > 2) {
-      D.tbChannel.textContent = meta.title.length > 30 ? meta.title.slice(0, 28) + '…' : meta.title;
-    }
-  } catch (e) { /* silent */ }
-}
 
 // ── Top bar ───────────────────────────────
 function updateTopBar() {
@@ -1350,7 +1481,12 @@ function togglePiP() {
 // ── Settings sheet ────────────────────────
 function openSettings() { document.getElementById('settings-sheet').classList.add('on'); }
 function closeSettings() { document.getElementById('settings-sheet').classList.remove('on'); }
-function openEPG() { buildEPGSheet(); document.getElementById('epg-sheet').classList.add('on'); }
+function openEPG() {
+  const titleEl = document.getElementById('epg-sheet-ttl');
+  if (titleEl) titleEl.textContent = _postTitle ? `📋 Related to this match` : '📋 Sports803 Posts';
+  buildEPGSheet();
+  document.getElementById('epg-sheet').classList.add('on');
+}
 function closeEPG() { document.getElementById('epg-sheet').classList.remove('on'); }
 
 // ── Shortcuts overlay ─────────────────────
