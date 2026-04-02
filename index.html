@@ -1,1554 +1,272 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Sports 803 Live</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Sports 803 Player</title>
+
 <script src="https://cdn.jwplayer.com/libraries/IDzF9Zmk.js"></script>
+
+<!-- Chromecast -->
+<script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
+
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+*{margin:0;padding:0;box-sizing:border-box}
+
 :root{
-  --red:#ff2233;--red2:#ff4455;--red-dim:rgba(255,34,51,.15);
-  --bg:#080808;--s1:#111;--s2:#1a1a1a;--s3:#222;
-  --b1:rgba(255,255,255,.06);--b2:rgba(255,255,255,.12);--b3:rgba(255,255,255,.22);
-  --t1:#fff;--t2:rgba(255,255,255,.65);--t3:rgba(255,255,255,.35);
-  --green:#00e676;--amber:#ffab00;--blue:#448aff;
-  --font:'Inter',sans-serif;--display:'Rajdhani',sans-serif;
-  --r:10px;--ease:cubic-bezier(.4,0,.2,1);
-  --safe-top:env(safe-area-inset-top,0px);
-  --safe-bottom:env(safe-area-inset-bottom,0px);
+--red:#e5181a;
+--bg:#000;
+--glass:rgba(0,0,0,.6);
+--text:#fff;
+--dim:rgba(255,255,255,.6);
 }
-html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:var(--font);color:var(--t1);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
 
-/* ─── App Shell ─────────────────── */
-#app{display:flex;flex-direction:column;width:100%;height:100%;position:fixed;inset:0}
+body{background:#000;font-family:sans-serif;color:#fff;overflow:hidden}
 
-/* ─── Stage ─────────────────────── */
-#stage{position:relative;flex:1;background:#000;overflow:hidden;cursor:pointer}
-#player-host,#embed-host{position:absolute;inset:0;width:100%;height:100%}
-#player-host{background:#000;z-index:2;display:none}
-#embed-host{z-index:3;display:none;flex-direction:column;background:#000}
-#embed-host.active{display:flex}
+#player{position:fixed;inset:0}
 
-/* ─── Gradient overlays ──────────── */
-#grad-top{position:absolute;top:0;left:0;right:0;height:120px;background:linear-gradient(to bottom,rgba(0,0,0,.85),transparent);z-index:9;pointer-events:none;opacity:0;transition:opacity .3s}
-#grad-bot{position:absolute;bottom:0;left:0;right:0;height:160px;background:linear-gradient(to top,rgba(0,0,0,.9) 0%,rgba(0,0,0,.5) 60%,transparent 100%);z-index:9;pointer-events:none;opacity:0;transition:opacity .3s}
-#stage.ctrl-on #grad-top,#stage.ctrl-on #grad-bot{opacity:1}
-
-/* ─── Top Bar (Netflix-style) ────── */
-#top-bar{
-position:absolute;top:0;left:0;right:0;z-index:10;
-padding:calc(12px + var(–safe-top)) 16px 12px;
+/* TOP BAR */
+#topbar{
+position:absolute;top:0;left:0;right:0;
 display:flex;align-items:center;gap:10px;
-opacity:0;transform:translateY(-8px);
-transition:opacity .3s var(–ease),transform .3s var(–ease);
-pointer-events:none;
+padding:10px;
+background:var(--glass);
+backdrop-filter:blur(10px);
+z-index:10;
 }
-#stage.ctrl-on #top-bar{opacity:1;transform:translateY(0);pointer-events:auto}
-.tb-logo{font-family:var(–display);font-size:18px;font-weight:700;color:var(–red);letter-spacing:.06em;text-shadow:0 0 20px rgba(255,34,51,.4);flex-shrink:0}
-.tb-sep{width:1px;height:16px;background:var(–b2);flex-shrink:0;margin:0 2px}
-#tb-channel{font-family:var(–display);font-size:15px;font-weight:600;color:var(–t1);letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
-#tb-status{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.tb-live{display:flex;align-items:center;gap:5px;background:var(–red);padding:3px 9px 3px 6px;border-radius:4px}
-.tb-live .ld{width:6px;height:6px;border-radius:50%;background:#fff;animation:pulse 1.5s ease infinite}
-.tb-live span{font-family:var(–display);font-size:11px;font-weight:700;letter-spacing:.1em;color:#fff}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
-#tb-viewers{display:flex;align-items:center;gap:4px;background:rgba(0,0,0,.5);border:1px solid var(–b2);padding:3px 9px;border-radius:4px;font-size:11px;font-weight:500;color:var(–t2)}
-#tb-viewers .eye{font-size:10px}
 
-/* ─── Tap-to-show overlay ─────────── */
-#tap-hint{
-position:absolute;inset:0;z-index:8;
+#thumb{
+width:40px;height:40px;
+border-radius:6px;
+object-fit:cover;
+background:#111;
+}
+
+#title{
+font-size:13px;
+font-weight:600;
+flex:1;
+}
+
+#live{color:red;font-size:11px;font-weight:700}
+
+/* CONTROLS */
+#controls{
+position:absolute;
+bottom:0;left:0;right:0;
+display:flex;gap:8px;
+padding:10px;
+overflow-x:auto;
+background:var(--glass);
+backdrop-filter:blur(10px);
+}
+
+.btn{
+padding:10px 14px;
+background:#111;
+border-radius:8px;
+font-size:13px;
+white-space:nowrap;
+}
+
+/* SHEET */
+#sheet{
+position:fixed;
+bottom:-100%;
+left:0;right:0;
+background:#111;
+padding:20px;
+border-radius:16px 16px 0 0;
+transition:.3s;
+z-index:20;
+}
+
+#sheet.show{bottom:0}
+
+.sheet-btn{
+padding:14px;
+background:#222;
+margin-bottom:10px;
+border-radius:10px;
+}
+
+/* LOADING */
+#loading{
+position:absolute;inset:0;
 display:flex;align-items:center;justify-content:center;
-opacity:0;transition:opacity .2s;pointer-events:none
+background:#000;z-index:15;
 }
-#tap-hint.flash{opacity:1}
-.th-ring{width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,.12);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;font-size:22px}
 
-/* ─── Playback Info Strip ─────────── */
-#info-strip{
-position:absolute;bottom:60px;left:0;right:0;z-index:10;
-padding:0 16px 8px;
-opacity:0;transform:translateY(6px);
-transition:opacity .3s var(–ease),transform .3s var(–ease);
-pointer-events:none;
-}
-#stage.ctrl-on #info-strip{opacity:1;transform:translateY(0)}
-#epg-now{display:flex;align-items:center;gap:8px;margin-bottom:6px}
-.epg-badge{font-size:10px;font-weight:600;letter-spacing:.06em;padding:2px 7px;border-radius:3px;background:var(–blue);color:#fff;flex-shrink:0}
-#epg-title{font-size:13px;font-weight:500;color:var(–t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#epg-bar{height:2px;background:var(–b2);border-radius:2px;overflow:hidden;margin-bottom:8px}
-#epg-fill{height:100%;background:var(–red);border-radius:2px;transition:width .5s ease}
-#post-meta{display:flex;align-items:center;gap:10px}
-#post-thumb{width:48px;height:28px;object-fit:cover;border-radius:4px;background:var(–s2);flex-shrink:0;display:none}
-#post-thumb.loaded{display:block}
-#post-title{font-size:12px;color:var(–t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:italic}
-
-/* ─── Bottom Controls ─────────────── */
-#ctrl-bar{
-position:absolute;bottom:0;left:0;right:0;z-index:10;
-padding:12px 14px calc(12px + var(–safe-bottom));
-display:flex;align-items:center;gap:8px;
-opacity:0;transform:translateY(8px);
-transition:opacity .3s var(–ease),transform .3s var(–ease);
-pointer-events:none;
-}
-#stage.ctrl-on #ctrl-bar{opacity:1;transform:translateY(0);pointer-events:auto}
-.c-btn{
-display:inline-flex;align-items:center;justify-content:center;gap:5px;
-height:38px;min-width:38px;padding:0 12px;
-background:rgba(0,0,0,.55);border:1px solid var(–b2);border-radius:8px;
-backdrop-filter:blur(12px);
-color:var(–t2);font-family:var(–font);font-size:12px;font-weight:500;
-cursor:pointer;white-space:nowrap;flex-shrink:0;
-transition:all .15s var(–ease);
-}
-.c-btn:hover{background:rgba(255,255,255,.12);color:var(–t1);border-color:var(–b3)}
-.c-btn:active{transform:scale(.95)}
-.c-btn.ico{min-width:38px;padding:0;width:38px}
-.c-btn svg{width:15px;height:15px;flex-shrink:0}
-#vol-wrap{display:flex;align-items:center;gap:6px;flex:0 0 auto}
-#vol-sl{
-width:72px;height:3px;
--webkit-appearance:none;appearance:none;
-background:var(–b3);border-radius:2px;cursor:pointer;outline:none;
-}
-#vol-sl::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(–t1);border-radius:50%;cursor:pointer;box-shadow:0 0 8px rgba(0,0,0,.6)}
-#vol-sl::-moz-range-thumb{width:14px;height:14px;background:var(–t1);border-radius:50%;cursor:pointer;border:none}
-.c-spacer{flex:1}
-.cast-btn{position:relative}
-.cast-btn[data-casting=“true”]{color:var(–blue);border-color:rgba(68,138,255,.4)}
-
-/* ─── Source Chips ───────────────── */
-#src-strip{
-flex-shrink:0;height:46px;
-background:var(–s1);border-top:1px solid var(–b1);
-padding:0 12px;gap:6px;overflow-x:auto;overflow-y:hidden;
-display:none;align-items:center;scrollbar-width:none;
-}
-#src-strip::-webkit-scrollbar{display:none}
-#src-strip.on{display:flex}
-.src-chip{
-display:inline-flex;align-items:center;gap:5px;
-height:30px;padding:0 12px;
-background:var(–s2);border:1px solid var(–b1);border-radius:20px;
-color:var(–t3);font-size:11px;font-weight:500;
-cursor:pointer;white-space:nowrap;flex-shrink:0;
-transition:all .15s var(–ease);
-}
-.src-chip:hover{border-color:var(–b3);color:var(–t2)}
-.src-chip.active{background:var(–red-dim);border-color:rgba(255,34,51,.3);color:var(–t1)}
-.src-chip .blink{width:5px;height:5px;border-radius:50%;background:var(–t3)}
-.src-chip.active .blink{background:var(–red);animation:pulse 1.6s ease infinite}
-.src-chip.testing .blink{background:var(–amber);animation:pulse .8s ease infinite}
-
-/* ─── Stream Speed Tester ────────── */
-#test-bar{
-flex-shrink:0;background:var(–s1);border-top:1px solid var(–b1);
-padding:8px 14px;display:none;align-items:center;gap:8px;
-}
-#test-bar.on{display:flex}
-#test-label{font-size:11px;font-weight:500;color:var(–t3);flex:1}
-#test-results{display:flex;gap:5px;flex-wrap:wrap}
-.tr-item{font-size:10px;padding:2px 8px;border-radius:3px;font-weight:600}
-.tr-fast{background:rgba(0,230,118,.15);color:var(–green);border:1px solid rgba(0,230,118,.2)}
-.tr-slow{background:rgba(255,171,0,.12);color:var(–amber);border:1px solid rgba(255,171,0,.2)}
-.tr-dead{background:rgba(255,34,51,.1);color:var(–red);border:1px solid rgba(255,34,51,.15)}
-
-/* ─── Loading ────────────────────── */
-#loading{position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);display:none;flex-direction:column;justify-content:center;align-items:center;gap:14px;pointer-events:none}
-#loading.on{display:flex}
-.spin{width:40px;height:40px;border:2px solid rgba(255,255,255,.1);border-top-color:var(–red);border-radius:50%;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-#load-txt{color:var(–t2);font-size:13px;font-weight:400}
-#load-prog{width:140px;height:2px;background:var(–b1);border-radius:2px;overflow:hidden}
-#load-fill{height:100%;background:var(–red);width:0%;transition:width .4s ease}
-
-/* ─── Error State ────────────────── */
-#err-panel{position:absolute;inset:0;z-index:21;background:rgba(0,0,0,.9);backdrop-filter:blur(10px);display:none;flex-direction:column;justify-content:center;align-items:center;padding:24px;gap:12px}
-#err-panel.on{display:flex}
-.err-ico{font-size:40px}
-.err-ttl{font-family:var(–display);font-size:20px;font-weight:700;letter-spacing:.04em;text-align:center}
-.err-msg{color:var(–t2);font-size:13px;text-align:center;max-width:300px;line-height:1.6}
-.err-hint{color:var(–t3);font-size:12px;text-align:center;max-width:280px;line-height:1.5;background:var(–b1);padding:10px 14px;border-radius:8px;border:1px solid var(–b1)}
-.err-acts{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px}
-.err-btn{padding:10px 22px;border-radius:8px;border:none;cursor:pointer;font-family:var(–font);font-size:13px;font-weight:600;transition:all .15s}
-.err-btn.p{background:var(–red);color:#fff}
-.err-btn.p:hover{background:var(–red2);transform:translateY(-1px)}
-.err-btn.s{background:var(–b2);color:var(–t1);border:1px solid var(–b2)}
-.err-btn.s:hover{background:var(–b3)}
-
-/* ─── Embed Host ─────────────────── */
-#embed-shimmer{position:absolute;inset:0;z-index:4;background:linear-gradient(110deg,#0a0a0a 25%,#161616 50%,#0a0a0a 75%);background-size:400% 100%;animation:shimmer 1.4s ease infinite;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px;transition:opacity .3s}
-#embed-shimmer.hidden{opacity:0;pointer-events:none}
-@keyframes shimmer{0%{background-position:100% 50%}100%{background-position:0 50%}}
-.sh-icon{font-size:28px;opacity:.2}
-.sh-text{color:var(–t3);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
-.sh-track{width:100px;height:2px;background:var(–b1);border-radius:2px;overflow:hidden}
-.sh-fill{height:100%;width:0%;background:var(–red);transition:width .5s ease}
-#embed-frame{position:absolute;inset:0;width:100%;height:100%;border:none;background:#000;z-index:3;opacity:0;transition:opacity .4s}
-#embed-frame.visible{opacity:1}
-#embed-err{position:absolute;inset:0;z-index:6;background:rgba(0,0,0,.9);backdrop-filter:blur(8px);display:none;flex-direction:column;justify-content:center;align-items:center;gap:12px;padding:28px}
-#embed-err.on{display:flex}
-
-/* ─── Toast ──────────────────────── */
-#toast{
-position:absolute;bottom:80px;left:50%;transform:translateX(-50%) translateY(10px);
-z-index:30;background:rgba(10,10,10,.9);border:1px solid var(–b2);backdrop-filter:blur(16px);
-color:var(–t1);font-size:12px;font-weight:500;padding:8px 16px;border-radius:20px;
-white-space:nowrap;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none
-}
-#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
-
-/* ─── Settings Sheet ─────────────── */
-#settings-sheet{
-position:absolute;inset:0;z-index:25;
-display:flex;flex-direction:column;justify-content:flex-end;
-background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
-opacity:0;pointer-events:none;transition:opacity .2s;
-}
-#settings-sheet.on{opacity:1;pointer-events:auto}
-#sheet-inner{
-background:var(–s1);border-top:1px solid var(–b2);border-radius:16px 16px 0 0;
-padding:16px 20px calc(20px + var(–safe-bottom));
-transform:translateY(100%);transition:transform .3s var(–ease);
-}
-#settings-sheet.on #sheet-inner{transform:translateY(0)}
-.sheet-handle{width:36px;height:3px;background:var(–b3);border-radius:2px;margin:0 auto 14px}
-.sheet-ttl{font-family:var(–display);font-size:16px;font-weight:600;letter-spacing:.04em;margin-bottom:16px;color:var(–t1)}
-.sheet-section{margin-bottom:14px}
-.sheet-lbl{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(–t3);margin-bottom:8px}
-.sheet-opts{display:flex;gap:6px;flex-wrap:wrap}
-.sheet-opt{
-padding:7px 14px;border-radius:20px;background:var(–s2);border:1px solid var(–b1);
-color:var(–t2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s
-}
-.sheet-opt:hover{background:var(–s3);color:var(–t1)}
-.sheet-opt.active{background:var(–red-dim);border-color:rgba(255,34,51,.3);color:var(–t1)}
-.sheet-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(–b1)}
-.sheet-row:last-child{border-bottom:none}
-.sheet-row-lbl{font-size:13px;font-weight:400;color:var(–t2)}
-.sheet-row-val{font-size:12px;color:var(–t3)}
-.sheet-close{width:100%;margin-top:10px;padding:12px;background:var(–red);color:#fff;border:none;border-radius:10px;cursor:pointer;font-family:var(–font);font-size:13px;font-weight:600;transition:background .15s}
-.sheet-close:hover{background:var(–red2)}
-
-/* ─── EPG Sheet ──────────────────── */
-#epg-sheet{
-position:absolute;inset:0;z-index:25;
-display:flex;flex-direction:column;justify-content:flex-end;
-background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
-opacity:0;pointer-events:none;transition:opacity .2s;
-}
-#epg-sheet.on{opacity:1;pointer-events:auto}
-#epg-inner{
-background:var(–s1);border-top:1px solid var(–b2);border-radius:16px 16px 0 0;
-padding:16px 0 calc(16px + var(–safe-bottom));max-height:55vh;
-transform:translateY(100%);transition:transform .3s var(–ease);
-display:flex;flex-direction:column;
-}
-#epg-sheet.on #epg-inner{transform:translateY(0)}
-#epg-head{padding:0 20px 12px;border-bottom:1px solid var(–b1);flex-shrink:0}
-#epg-list{overflow-y:auto;flex:1;padding:8px 0}
-.epg-item{display:flex;align-items:center;gap:10px;padding:8px 20px;transition:background .15s;cursor:pointer}
-.epg-item:hover{background:var(–b1)}
-.epg-item.now{background:var(–red-dim)}
-.epg-time{font-family:‘Rajdhani’,sans-serif;font-size:12px;font-weight:600;color:var(–t3);flex-shrink:0;width:42px}
-.epg-prog{flex:1;min-width:0}
-.epg-prog-name{font-size:13px;font-weight:500;color:var(–t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.epg-prog-cat{font-size:11px;color:var(–t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.epg-now-badge{font-size:10px;background:var(–red);color:#fff;padding:2px 6px;border-radius:3px;flex-shrink:0;font-weight:600}
-
-/* ─── Init Placeholder ───────────── */
-#init-ph{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px;background:#000;z-index:5}
-.ip-logo{font-family:var(–display);font-size:28px;font-weight:700;color:var(–red);letter-spacing:.1em;text-shadow:0 0 30px rgba(255,34,51,.3)}
-.ip-txt{color:var(–t3);font-size:12px}
-
-/* ─── Switching Banner ───────────── */
-#sw-banner{
-position:absolute;bottom:70px;left:50%;transform:translateX(-50%) translateY(10px);
-z-index:22;background:rgba(10,10,10,.9);border:1px solid var(–b2);backdrop-filter:blur(12px);
-border-radius:20px;padding:7px 16px;gap:7px;display:flex;align-items:center;
-color:var(–t2);font-size:11px;font-weight:500;
-opacity:0;pointer-events:none;transition:opacity .2s,transform .2s
-}
-#sw-banner.on{opacity:1;transform:translateX(-50%) translateY(0)}
-.sw-dot{width:5px;height:5px;border-radius:50%;background:var(–amber);animation:pulse 1s ease infinite;flex-shrink:0}
-
-/* ─── Responsive ─────────────────── */
-@media(max-width:480px){
-#vol-wrap{display:none}
-.c-btn .c-lbl{display:none}
-.c-btn{min-width:40px;height:40px;padding:0}
-#tb-viewers{display:none}
-}
-@media(min-width:769px){
-#src-strip{height:50px}
-.src-chip{height:34px;font-size:12px}
-}
 </style>
-
 </head>
+
 <body>
-<div id="app">
-  <!-- ── Stage ───────────────────────────── -->
-  <div id="stage">
-    <div id="init-ph">
-      <div class="ip-logo">SPORTS 803</div>
-      <div class="ip-txt">Initializing…</div>
-    </div>
-    <div id="player-host"></div>
-    <div id="embed-host">
-      <div id="embed-shimmer">
-        <span class="sh-icon">📡</span>
-        <span class="sh-text">Connecting…</span>
-        <div class="sh-track"><div class="sh-fill" id="sh-fill"></div></div>
-      </div>
-      <iframe id="embed-frame"
-        allow="autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write; web-share; accelerometer; gyroscope"
-        referrerpolicy="no-referrer-when-downgrade"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-presentation allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-downloads"
-        allowfullscreen></iframe>
-      <div id="embed-err">
-        <div class="err-ico" id="ee-icon">📡</div>
-        <div class="err-ttl" id="ee-title">Stream unavailable</div>
-        <div class="err-msg" id="ee-msg">We couldn't load this source.</div>
-        <div class="err-acts">
-          <button class="err-btn p" onclick="SP.retryEmbed()">↺ Try Again</button>
-          <button class="err-btn s" id="ee-next" onclick="SP.nextEmbedSource()" style="display:none">Next Source</button>
-        </div>
-      </div>
-    </div>
 
-```
-<!-- Gradient overlays -->
-<div id="grad-top"></div>
-<div id="grad-bot"></div>
+<div id="player"></div>
 
-<!-- Netflix-style top bar -->
-<div id="top-bar">
-  <div class="tb-logo">803</div>
-  <div class="tb-sep"></div>
-  <div id="tb-channel">Loading…</div>
-  <div id="tb-status">
-    <div class="tb-live"><span class="ld"></span><span>LIVE</span></div>
-    <div id="tb-viewers"><span class="eye">👁</span><span id="viewer-count">—</span></div>
-  </div>
+<!-- TOP BAR -->
+<div id="topbar">
+<img id="thumb">
+<div id="title">Loading…</div>
+<div id="live">LIVE</div>
 </div>
 
-<!-- Tap hint -->
-<div id="tap-hint"><div class="th-ring">▶</div></div>
-
-<!-- EPG + post meta strip -->
-<div id="info-strip">
-  <div id="epg-now">
-    <span class="epg-badge">NOW</span>
-    <span id="epg-title">Loading schedule…</span>
-  </div>
-  <div id="epg-bar"><div id="epg-fill" style="width:0%"></div></div>
-  <div id="post-meta">
-    <img id="post-thumb" alt="">
-    <span id="post-title"></span>
-  </div>
+<!-- CONTROLS -->
+<div id="controls">
+<div class="btn" onclick="nextStream()">Switch</div>
+<div class="btn" onclick="refresh()">Refresh</div>
+<div class="btn" onclick="openSheet()">Settings</div>
+<div class="btn" onclick="cast()">Cast</div>
+<div class="btn" onclick="airplay()">AirPlay</div>
+<div class="btn" onclick="fullscreen()">Fullscreen</div>
 </div>
 
-<!-- Bottom controls -->
-<div id="ctrl-bar">
-  <button class="c-btn ico" id="btn-mute" onclick="SP.toggleMute()" title="Mute">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-      <path id="vol-x" d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" style="display:block"/>
-    </svg>
-  </button>
-  <div id="vol-wrap">
-    <input type="range" id="vol-sl" min="0" max="100" value="80">
-  </div>
-  <div class="c-spacer"></div>
-  <button class="c-btn" onclick="SP.openEPG()" title="What's on">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-    <span class="c-lbl">Posts</span>
-  </button>
-  <button class="c-btn cast-btn" id="btn-cast" onclick="SP.startCast()" title="Cast / AirPlay">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"/><line x1="2" y1="20" x2="2.01" y2="20"/></svg>
-    <span class="c-lbl">Cast</span>
-  </button>
-  <button class="c-btn ico" onclick="SP.togglePiP()" title="Picture-in-Picture">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><rect x="13" y="11" width="9" height="8" rx="1"/></svg>
-  </button>
-  <button class="c-btn ico" onclick="SP.openSettings()" title="Settings">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-  </button>
-  <button class="c-btn ico" onclick="SP.toggleFullscreen()" title="Fullscreen">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-  </button>
+<!-- SETTINGS -->
+<div id="sheet">
+<div class="sheet-btn" onclick="nextStream()">Switch Stream</div>
+<div class="sheet-btn" onclick="refresh()">Refresh</div>
+<div class="sheet-btn" onclick="cast()">Chromecast</div>
+<div class="sheet-btn" onclick="airplay()">AirPlay</div>
+<div class="sheet-btn" onclick="fullscreen()">Fullscreen</div>
+<div class="sheet-btn" onclick="closeSheet()">Close</div>
 </div>
 
-<!-- Switching banner -->
-<div id="sw-banner"><span class="sw-dot"></span><span id="sw-txt">Switching…</span></div>
-
-<!-- Loading -->
-<div id="loading">
-  <div class="spin"></div>
-  <div id="load-txt">Loading stream…</div>
-  <div id="load-prog"><div id="load-fill"></div></div>
-</div>
-
-<!-- Error panel -->
-<div id="err-panel">
-  <div class="err-ico" id="err-ico">⚠️</div>
-  <div class="err-ttl" id="err-ttl">Stream not working</div>
-  <div class="err-msg" id="err-msg">Something went wrong.</div>
-  <div class="err-hint" id="err-hint"></div>
-  <div class="err-acts">
-    <button class="err-btn p" onclick="SP.retry()">↺ Try Again</button>
-    <button class="err-btn s" onclick="SP.nextStream()">Next Source</button>
-  </div>
-</div>
-
-<!-- Toast -->
-<div id="toast"></div>
-
-<!-- Settings Bottom Sheet -->
-<div id="settings-sheet" onclick="if(event.target===this)SP.closeSettings()">
-  <div id="sheet-inner">
-    <div class="sheet-handle"></div>
-    <div class="sheet-ttl">⚙ Settings</div>
-    <div class="sheet-section">
-      <div class="sheet-lbl">Quality</div>
-      <div class="sheet-opts" id="qual-opts"></div>
-    </div>
-    <div class="sheet-section">
-      <div class="sheet-lbl">Stream Info</div>
-      <div class="sheet-row">
-        <span class="sheet-row-lbl">Current Source</span>
-        <span class="sheet-row-val" id="sh-source">—</span>
-      </div>
-      <div class="sheet-row">
-        <span class="sheet-row-lbl">Adapter</span>
-        <span class="sheet-row-val" id="sh-adapter">—</span>
-      </div>
-      <div class="sheet-row">
-        <span class="sheet-row-lbl">Format</span>
-        <span class="sheet-row-val" id="sh-format">—</span>
-      </div>
-    </div>
-    <div class="sheet-section">
-      <div class="sheet-lbl">Actions</div>
-      <div class="sheet-opts">
-        <div class="sheet-opt" onclick="SP.runSpeedTest()">🚀 Speed Test</div>
-        <div class="sheet-opt" onclick="SP.refresh()">↺ Refresh</div>
-        <div class="sheet-opt" onclick="SP.closeSettings();SP.showShortcuts()">⌨ Shortcuts</div>
-      </div>
-    </div>
-    <button class="sheet-close" onclick="SP.closeSettings()">Done</button>
-  </div>
-</div>
-
-<!-- EPG Sheet -->
-<div id="epg-sheet" onclick="if(event.target===this)SP.closeEPG()">
-  <div id="epg-inner">
-    <div id="epg-head">
-      <div class="sheet-handle"></div>
-      <div class="sheet-ttl" style="margin-bottom:0" id="epg-sheet-ttl">📋 Related Posts</div>
-    </div>
-    <div id="epg-list"></div>
-  </div>
-</div>
-
-<!-- Shortcuts overlay -->
-<div id="sc-overlay" style="position:absolute;inset:0;z-index:26;background:rgba(0,0,0,.92);backdrop-filter:blur(10px);display:none;justify-content:center;align-items:center;padding:20px">
-  <div style="background:var(--s1);border:1px solid var(--b2);border-radius:14px;padding:24px;max-width:460px;width:100%">
-    <div style="font-family:var(--display);font-size:16px;font-weight:700;letter-spacing:.04em;text-align:center;margin-bottom:16px">⌨ Keyboard Shortcuts</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="sc-grid"></div>
-    <button onclick="SP.closeShortcuts()" style="width:100%;margin-top:16px;padding:11px;background:var(--red);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">Close</button>
-  </div>
-</div>
-```
-
-  </div>
-
-  <!-- ── Source Strip ────────────────── -->
-
-  <div id="src-strip"></div>
-  <!-- ── Test Bar ─────────────────────── -->
-  <div id="test-bar">
-    <div id="test-label">⚡ Testing streams…</div>
-    <div id="test-results"></div>
-  </div>
-</div>
-
-<script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+<div id="loading">Loading stream...</div>
 
 <script>
-'use strict';
 
-const SP = (() => {
+/* STREAMS */
+let streams=new URLSearchParams(location.search).getAll("mora");
+let index=0;
+let player;
 
-// ── Config ──────────────────────────────
-const CFG = {
-  FALLBACK_URL: '',
-  STORAGE_KEY: 'sp803_idx',
-  CACHE_PFX: 'sp803_',
-  CACHE_TTL: 540000,
-  PLAYER_TO: 16000,
-  MAX_RETRY: 2,
-  CTRL_FADE: 3500,
-  EMBED_TO: 15000,
-  SANDBOX: 'allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-presentation allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-downloads',
-  PROXY: [
-    u => `https://corsproxy.io/?url=${encodeURIComponent(u)}`,
-    u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-    u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-  ],
-  PSCORE: [0, 0, 0],
-  SELF_CTRL: new Set(['jwplayer', 'embed']),
-  LABELS: [
-    { name: 'HD 1', icon: '📺' }, { name: 'Full HD', icon: '🎯' },
-    { name: 'Backup', icon: '🔄' }, { name: 'Alt', icon: '🌐' },
-    { name: 'SD', icon: '📡' }, { name: 'Mirror', icon: '🔁' },
-  ],
-  BLOG: 'https://sports803livestream.blogspot.com',
-  FEED_MAX: 20,
-};
+/* INIT */
+init();
 
-const lbl = i => i < CFG.LABELS.length ? CFG.LABELS[i] : { name: `Stream ${i + 1}`, icon: '📺' };
-const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-// ── DOM ───────────────────────────────────
-const D = {
-  stage: document.getElementById('stage'),
-  host: document.getElementById('player-host'),
-  embedHost: document.getElementById('embed-host'),
-  embedFrame: document.getElementById('embed-frame'),
-  embedShimmer: document.getElementById('embed-shimmer'),
-  shFill: document.getElementById('sh-fill'),
-  embedErr: document.getElementById('embed-err'),
-  eeIcon: document.getElementById('ee-icon'),
-  eeTitle: document.getElementById('ee-title'),
-  eeMsg: document.getElementById('ee-msg'),
-  eeNext: document.getElementById('ee-next'),
-  loading: document.getElementById('loading'),
-  loadTxt: document.getElementById('load-txt'),
-  loadFill: document.getElementById('load-fill'),
-  swBanner: document.getElementById('sw-banner'),
-  swTxt: document.getElementById('sw-txt'),
-  errPanel: document.getElementById('err-panel'),
-  errIco: document.getElementById('err-ico'),
-  errTtl: document.getElementById('err-ttl'),
-  errMsg: document.getElementById('err-msg'),
-  errHint: document.getElementById('err-hint'),
-  toast: document.getElementById('toast'),
-  srcStrip: document.getElementById('src-strip'),
-  testBar: document.getElementById('test-bar'),
-  testLabel: document.getElementById('test-label'),
-  testResults: document.getElementById('test-results'),
-  tbChannel: document.getElementById('tb-channel'),
-  viewerCount: document.getElementById('viewer-count'),
-  epgTitle: document.getElementById('epg-title'),
-  epgFill: document.getElementById('epg-fill'),
-  postThumb: document.getElementById('post-thumb'),
-  postTitle: document.getElementById('post-title'),
-  volSl: document.getElementById('vol-sl'),
-  qualOpts: document.getElementById('qual-opts'),
-  shSource: document.getElementById('sh-source'),
-  shAdapter: document.getElementById('sh-adapter'),
-  shFormat: document.getElementById('sh-format'),
-  btnCast: document.getElementById('btn-cast'),
-  epgList: document.getElementById('epg-list'),
-  initPh: document.getElementById('init-ph'),
-};
-
-// ── State ─────────────────────────────────
-let appState = 'idle', playGen = 0, retryCount = 0;
-let ctrlTimer = null, toastTimer = null, swTimer = null;
-let streams = [], curIdx = 0, curStream = null, curPlayer = null;
-let instances = [], curAdapter = '', chipEls = [];
-let ctrlVisible = false, muteState = false;
-let castSession = null, isCasting = false;
-
-// ── URL Params ────────────────────────────
-function safe(url) {
-  if (!url || typeof url !== 'string') return false;
-  const t = url.trim();
-  if (t.length < 10 || t.length > 2048) return false;
-  if (/^(javascript|data|blob|vbscript|file):/i.test(t)) return false;
-  try {
-    const p = new URL(t);
-    if (!['http:', 'https:'].includes(p.protocol)) return false;
-    if (!p.hostname || p.hostname.length < 3) return false;
-    return true;
-  } catch { return false; }
+function init(){
+fetchMeta(); // 🔥 auto title + thumbnail
+if(!streams.length){
+document.getElementById("loading").innerText="No stream";
+return;
+}
+play(streams[index]);
 }
 
-function decodeData() { try { const e = new URLSearchParams(location.search).get('data'); if (!e) return null; return JSON.parse(atob(e)); } catch { return null; } }
-function getP(name) { const d = decodeData(); if (d && d[name]) return Array.isArray(d[name]) ? d[name] : [d[name]]; return new URLSearchParams(location.search).getAll(name); }
+/* PLAYER */
+function play(url){
+document.getElementById("loading").style.display="flex";
 
-const moraP = getP('mora').filter(safe);
-const embedP = getP('embed').filter(safe);
-const drmKP = (new URLSearchParams(location.search).get('drmkey') || '').trim();
-const refP = (new URLSearchParams(location.search).get('referer') || '').trim();
-const chanName = new URLSearchParams(location.search).get('channel') || 'Sports 803';
-
-// ── Controls visibility ───────────────────
-function showCtrl() {
-  D.stage.classList.add('ctrl-on');
-  ctrlVisible = true;
-  clearTimeout(ctrlTimer);
-  if (appState === 'playing') {
-    ctrlTimer = setTimeout(hideCtrl, CFG.CTRL_FADE);
-  }
-}
-function hideCtrl() {
-  D.stage.classList.remove('ctrl-on');
-  ctrlVisible = false;
-}
-
-D.stage.addEventListener('click', e => {
-  if (e.target.closest('#ctrl-bar') || e.target.closest('#top-bar') || e.target.closest('#info-strip')) return;
-  if (ctrlVisible) hideCtrl();
-  else showCtrl();
-  // Tap feedback
-  const th = document.getElementById('tap-hint');
-  th.classList.add('flash');
-  setTimeout(() => th.classList.remove('flash'), 200);
-});
-D.stage.addEventListener('mousemove', () => { if (appState === 'playing') showCtrl(); });
-
-// ── Toast ─────────────────────────────────
-function toast(msg, dur = 2200) {
-  clearTimeout(toastTimer);
-  D.toast.textContent = msg;
-  D.toast.classList.add('on');
-  toastTimer = setTimeout(() => D.toast.classList.remove('on'), dur);
-}
-
-// ── Switch banner ─────────────────────────
-function showSw(msg = 'Switching…') {
-  clearTimeout(swTimer);
-  D.swTxt.textContent = msg;
-  D.swBanner.classList.add('on');
-  swTimer = setTimeout(() => D.swBanner.classList.remove('on'), 3500);
-}
-function hideSw() { clearTimeout(swTimer); D.swBanner.classList.remove('on'); }
-
-// ── Loading ───────────────────────────────
-function setLoading(on, txt = 'Loading stream…', pct) {
-  D.loadTxt.textContent = txt;
-  D.loading.classList.toggle('on', on);
-  if (on && pct !== undefined) D.loadFill.style.width = Math.min(100, Math.max(0, pct)) + '%';
-  else if (!on) D.loadFill.style.width = '0%';
-  if (on) appState = 'loading';
-}
-
-// ── Friendly errors ───────────────────────
-function friendly(raw = '') {
-  const m = raw.toLowerCase();
-  if (m.includes('timeout') || m.includes('timed out')) return { ico: '⏱️', ttl: 'Stream timed out', msg: 'The stream took too long to load.', hint: 'Check your connection, or try another source.' };
-  if (m.includes('network') || m.includes('failed to fetch')) return { ico: '📶', ttl: 'Connection failed', msg: 'Couldn\'t reach the stream server.', hint: 'You may be offline. Try refreshing.' };
-  if (m.includes('drm') || m.includes('clearkey')) return { ico: '🔑', ttl: 'Decryption error', msg: 'Couldn\'t decrypt this protected stream.', hint: 'The key may have expired. Try refreshing.' };
-  if (m.includes('not supported') || m.includes('format')) return { ico: '📺', ttl: 'Format not supported', msg: 'Your browser can\'t play this stream format.', hint: 'Try Chrome or Firefox for best compatibility.' };
-  if (m.includes('404') || m.includes('not found')) return { ico: '🔍', ttl: 'Stream not found', msg: 'The stream link returned an error.', hint: 'The stream may have ended. Try switching.' };
-  if (m.includes('403') || m.includes('forbidden')) return { ico: '🚫', ttl: 'Access denied', msg: 'Not allowed to access this stream.', hint: 'It may be geo-blocked or require login.' };
-  return { ico: '⚠️', ttl: 'Stream not working', msg: 'An unexpected problem occurred.', hint: 'Try refreshing, or switch to another source.' };
-}
-
-function showError(rawErr = '') {
-  clearHost();
-  const f = friendly(rawErr);
-  D.errIco.textContent = f.ico;
-  D.errTtl.textContent = f.ttl;
-  D.errMsg.textContent = f.msg;
-  if (f.hint) D.errHint.textContent = f.hint;
-  D.errPanel.classList.add('on');
-  appState = 'error';
-  setLoading(false);
-  showCtrl();
-}
-function hideError() { D.errPanel.classList.remove('on'); }
-
-// ── Live viewer counter (simulated) ──────
-let viewerBase = Math.floor(Math.random() * 800) + 200;
-function updateViewers() {
-  const delta = Math.floor(Math.random() * 40) - 18;
-  viewerBase = Math.max(50, Math.min(5000, viewerBase + delta));
-  const v = viewerBase >= 1000 ? (viewerBase / 1000).toFixed(1) + 'k' : String(viewerBase);
-  D.viewerCount.textContent = v;
-}
-setInterval(updateViewers, 8000);
-updateViewers();
-
-// ── Blog Feed & Post Meta ─────────────────
-// State shared between post meta + EPG
-let _blogPosts = [];       // parsed Blogger feed entries
-let _postTitle = '';       // current post title (from parent page)
-let _postImage = '';       // current post thumbnail
-let _postUrl = '';         // current post URL
-let _feedLoaded = false;
-
-// Extract thumbnail from a Blogger feed entry's content HTML
-function extractThumb(entry) {
-  // 1. media$thumbnail (Blogger sets this for the first image)
-  if (entry.media$thumbnail?.url) {
-    return entry.media$thumbnail.url.replace(/\/s[0-9]+-[a-z]\//, '/s400/').replace(/\/s[0-9]+\//, '/s400/');
-  }
-  // 2. First <img> inside content
-  const content = entry.content?.$t || entry.summary?.$t || '';
-  const m = content.match(/<img[^>]+src=["']([^"']+)["']/i);
-  if (m && m[1] && !m[1].includes('profile') && !m[1].includes('avatar')) {
-    return m[1];
-  }
-  return null;
-}
-
-// Extract categories/labels from a feed entry
-function extractLabels(entry) {
-  if (!entry.category) return [];
-  return entry.category.map(c => c.term).filter(Boolean);
-}
-
-// Get the alternate link from a feed entry
-function extractUrl(entry) {
-  const link = (entry.link || []).find(l => l.rel === 'alternate');
-  return link?.href || '';
-}
-
-// Fetch the Sports803 Blogger feed
-async function loadBlogFeed() {
-  if (_feedLoaded) return _blogPosts;
-  try {
-    const feedUrl = `${CFG.BLOG}/feeds/posts/default?alt=json&max-results=${CFG.FEED_MAX}`;
-    // Use corsproxy since we're on a different origin
-    const proxy = `https://corsproxy.io/?url=${encodeURIComponent(feedUrl)}`;
-    const ac = new AbortController();
-    const to = setTimeout(() => ac.abort(), 8000);
-    const res = await fetch(proxy, { signal: ac.signal });
-    clearTimeout(to);
-    if (!res.ok) throw new Error('Feed fetch failed');
-    const data = await res.json();
-    const entries = data?.feed?.entry || [];
-    _blogPosts = entries.map(e => ({
-      title: e.title?.$t || '',
-      url: extractUrl(e),
-      thumb: extractThumb(e),
-      labels: extractLabels(e),
-      published: e.published?.$t || '',
-      summary: (e.summary?.$t || '').replace(/<[^>]+>/g, '').slice(0, 120),
-    })).filter(p => p.title && p.url);
-    _feedLoaded = true;
-    return _blogPosts;
-  } catch (e) {
-    console.warn('[Feed]', e.message);
-    return [];
-  }
-}
-
-// Score how relevant a post is to the given title keywords
-function relevanceScore(post, keywords) {
-  const haystack = (post.title + ' ' + post.labels.join(' ')).toLowerCase();
-  let score = 0;
-  for (const kw of keywords) {
-    if (haystack.includes(kw)) score += kw.length > 3 ? 3 : 1;
-  }
-  return score;
-}
-
-// Extract search keywords from a post title
-// "Congo DR x Jamaica" → ["congo", "dr", "jamaica"]
-// Strips common filler words
-function titleToKeywords(title) {
-  const STOP = new Set(['vs', 'x', 'v', 'the', 'a', 'an', 'and', 'or', 'of', 'in', 'on', 'at', 'live', 'stream', 'watch', 'full', 'match', 'game', 'highlights', '2025', '2026', 'hd', '-']);
-  return title.toLowerCase()
-    .replace(/[^\w\s]/g, ' ')
-    .split(/\s+/)
-    .map(w => w.trim())
-    .filter(w => w.length >= 2 && !STOP.has(w));
-}
-
-// ── Post metadata from parent page ───────
-async function fetchPostMeta() {
-  try {
-    // 1. Try reading from parent page DOM (works when same-origin: blogspot.com)
-    let title = '', image = '', pageUrl = '';
-    try {
-      const pdoc = window.parent?.document;
-      if (pdoc && pdoc !== document) {
-        title = pdoc.querySelector('meta[property="og:title"]')?.content
-             || pdoc.querySelector('h1.post-title, h3.post-title, .post-title, h1')?.textContent?.trim()
-             || pdoc.title?.replace(/ [-–|].*$/, '').trim()
-             || '';
-        image = pdoc.querySelector('meta[property="og:image"]')?.content
-             || pdoc.querySelector('.post-body img, article img')?.src
-             || '';
-        pageUrl = pdoc.location?.href || '';
-      }
-    } catch { /* cross-origin — fall through */ }
-
-    // 2. URL param overrides (embed code can pass ?title= and ?thumb=)
-    const params = new URLSearchParams(location.search);
-    if (params.get('title')) title = decodeURIComponent(params.get('title'));
-    if (params.get('thumb')) image = decodeURIComponent(params.get('thumb'));
-    if (params.get('pageurl')) pageUrl = decodeURIComponent(params.get('pageurl'));
-
-    // 3. referrer as fallback for pageUrl
-    if (!pageUrl && document.referrer) pageUrl = document.referrer;
-
-    // 4. If we have a pageUrl pointing to the blog, fetch the post feed entry directly
-    if (!title && pageUrl && pageUrl.includes('sports803livestream.blogspot.com')) {
-      // Extract slug from URL: /2026/03/congo-dr-x-jamaica.html → "congo dr x jamaica"
-      const slugMatch = pageUrl.match(/\/(\d{4}\/\d{2}\/[^/?#]+)\.html/);
-      if (slugMatch) {
-        const slug = slugMatch[1].split('/').pop().replace(/-/g, ' ');
-        title = slug.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-      }
-    }
-
-    // Save to state
-    _postTitle = title;
-    _postImage = image;
-    _postUrl = pageUrl;
-
-    // Apply to UI
-    if (title) {
-      const shortTitle = title.length > 38 ? title.slice(0, 36) + '…' : title;
-      D.postTitle.textContent = shortTitle;
-      D.tbChannel.textContent = title.length > 28 ? title.slice(0, 26) + '…' : title;
-    }
-    if (image && safe(image)) {
-      D.postThumb.src = image;
-      D.postThumb.onload = () => D.postThumb.classList.add('loaded');
-    }
-
-    // Now load the blog feed and build related EPG
-    loadBlogFeed().then(() => buildEPGSheet()).catch(() => {});
-
-  } catch (e) { /* silent */ }
-}
-
-// ── EPG: powered by Sports803 Blogger feed ─
-function buildEPGSheet() {
-  D.epgList.innerHTML = '';
-
-  const posts = _blogPosts;
-  if (!posts.length) {
-    D.epgList.innerHTML = '<div style="padding:20px;color:rgba(255,255,255,.3);font-size:13px;text-align:center">Loading schedule…</div>';
-    // Trigger lazy load
-    loadBlogFeed().then(p => { if (p.length) buildEPGSheet(); });
-    return;
-  }
-
-  // Determine keywords from current post title
-  const keywords = _postTitle ? titleToKeywords(_postTitle) : [];
-
-  // Sort: relevant posts first, then by publish date (newest first)
-  const scored = posts.map(p => ({ ...p, score: relevanceScore(p, keywords) }));
-  scored.sort((a, b) => b.score - a.score || new Date(b.published) - new Date(a.published));
-
-  // Header
-  const hdr = document.createElement('div');
-  hdr.style.cssText = 'padding:10px 20px 6px;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.3)';
-  hdr.textContent = keywords.length ? `Related to "${_postTitle.slice(0, 30)}"` : 'Recent Posts';
-  D.epgList.appendChild(hdr);
-
-  scored.forEach((post, idx) => {
-    const isRelated = post.score > 0;
-    const isCurrentPost = _postUrl && post.url && _postUrl.includes(post.url.replace(/^https?:\/\/[^/]+/, '').replace(/\?.*/, ''));
-    const timeStr = post.published ? new Date(post.published).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
-    const labels = post.labels.slice(0, 2).join(', ');
-
-    const div = document.createElement('div');
-    div.className = 'epg-item' + (isCurrentPost ? ' now' : '');
-    div.style.cursor = 'pointer';
-
-    // Thumbnail if available
-    const thumbHtml = post.thumb
-      ? `<img src="${post.thumb}" style="width:52px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0;background:#222" onerror="this.style.display='none'">`
-      : `<div style="width:52px;height:32px;border-radius:4px;background:#1a1a1a;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px">⚽</div>`;
-
-    div.innerHTML = `
-      ${thumbHtml}
-      <div class="epg-prog" style="flex:1;min-width:0">
-        <div class="epg-prog-name" style="${isCurrentPost ? 'color:#fff;font-weight:600' : ''}">${post.title}</div>
-        <div class="epg-prog-cat">${labels}${labels && timeStr ? ' · ' : ''}${timeStr}</div>
-      </div>
-      ${isCurrentPost ? '<div class="epg-now-badge">HERE</div>' : ''}
-      ${isRelated && !isCurrentPost ? `<div style="font-size:10px;background:rgba(68,138,255,.15);color:#448aff;border:1px solid rgba(68,138,255,.2);padding:2px 6px;border-radius:3px;flex-shrink:0;font-weight:600">Related</div>` : ''}
-    `;
-    div.addEventListener('click', () => {
-      if (post.url) window.open(post.url, '_blank');
-    });
-    D.epgList.appendChild(div);
-  });
-
-  // Scroll to current post
-  const nowEl = D.epgList.querySelector('.now');
-  if (nowEl) setTimeout(() => nowEl.scrollIntoView({ block: 'center', behavior: 'smooth' }), 300);
-
-  // Update the mini EPG bar in the info strip with the current post
-  if (_postTitle) {
-    D.epgTitle.textContent = _postTitle;
-    D.epgFill.style.width = '100%';
-  }
-}
-
-// Keep the strip updated with post title (no time-based EPG needed here)
-function updateEPG() {
-  if (_postTitle) {
-    D.epgTitle.textContent = _postTitle;
-    D.epgFill.style.width = '100%';
-  }
-}
-updateEPG();
-setInterval(updateEPG, 30000);
-
-// ── Top bar ───────────────────────────────
-function updateTopBar() {
-  D.tbChannel.textContent = chanName || lbl(curIdx).name;
-}
-
-// ── Auto Speed Tester ─────────────────────
-async function runSpeedTest() {
-  if (!moraP.length) { toast('No streams to test'); return; }
-  D.testBar.classList.add('on');
-  D.testLabel.textContent = '⚡ Testing streams…';
-  D.testResults.innerHTML = '';
-  closeSettings();
-
-  const results = [];
-  for (let i = 0; i < Math.min(moraP.length, 6); i++) {
-    const chip = chipEls[i];
-    if (chip) chip.classList.add('testing');
-    const t0 = Date.now();
-    try {
-      const ctrl = new AbortController();
-      const to = setTimeout(() => ctrl.abort(), 6000);
-      const res = await fetch(moraP[i], { method: 'HEAD', signal: ctrl.signal, cache: 'no-cache' });
-      clearTimeout(to);
-      const ms = Date.now() - t0;
-      results.push({ idx: i, ms, ok: res.ok });
-      const el = document.createElement('div');
-      el.className = `tr-item ${ms < 800 ? 'tr-fast' : 'tr-slow'}`;
-      el.textContent = `S${i + 1}: ${ms}ms`;
-      D.testResults.appendChild(el);
-    } catch {
-      results.push({ idx: i, ms: 9999, ok: false });
-      const el = document.createElement('div');
-      el.className = 'tr-item tr-dead';
-      el.textContent = `S${i + 1}: ✗`;
-      D.testResults.appendChild(el);
-    }
-    if (chip) chip.classList.remove('testing');
-  }
-
-  // Auto-select fastest
-  const fastest = results.filter(r => r.ok).sort((a, b) => a.ms - b.ms)[0];
-  if (fastest && fastest.idx !== curIdx) {
-    D.testLabel.textContent = `⚡ Fastest: Source ${fastest.idx + 1} — switching`;
-    setTimeout(() => go(fastest.idx), 1200);
-  } else {
-    D.testLabel.textContent = fastest ? '✓ Already on fastest source' : '✗ All sources unresponsive';
-  }
-  setTimeout(() => D.testBar.classList.remove('on'), 8000);
-}
-
-// ── Proxy / Cache ─────────────────────────
-function cGet(k) { try { const r = sessionStorage.getItem(k); if (!r) return null; const p = JSON.parse(r); if (Date.now() - (p._at || 0) > CFG.CACHE_TTL) { sessionStorage.removeItem(k); return null; } return p; } catch { return null; } }
-function cSet(k, v) { try { sessionStorage.setItem(k, JSON.stringify({ ...v, _at: Date.now() })); } catch {} }
-function cDel(k) { try { sessionStorage.removeItem(k); } catch {} }
-
-function makeAC(ms) { const c = new AbortController(); c._t = setTimeout(() => c.abort(), ms); return c; }
-async function fetchProxied(url) {
-  const order = [...CFG.PSCORE.keys()].sort((a, b) => CFG.PSCORE[b] - CFG.PSCORE[a]);
-  let last;
-  for (const i of order) {
-    const pu = CFG.PROXY[i](url), ac = makeAC(9000);
-    try {
-      const r = await fetch(pu, { signal: ac.signal }); clearTimeout(ac._t);
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      let t = await r.text();
-      if (pu.includes('allorigins')) { try { const j = JSON.parse(t); if (j.contents !== undefined) t = j.contents; } catch {} }
-      CFG.PSCORE[i] = Math.max(CFG.PSCORE[i], 1); return t;
-    } catch (e) { clearTimeout(ac._t); CFG.PSCORE[i] = Math.max(0, CFG.PSCORE[i] - 1); last = e; }
-  }
-  throw last || new Error('All proxies failed');
-}
-
-function extractCK(html) {
-  const re = /"([0-9a-fA-F]{32})"\s*:\s*"([0-9a-fA-F]{32})"/g; let m;
-  while ((m = re.exec(html)) !== null) { const [, k, v] = m; if (k !== '0'.repeat(32) && v !== '0'.repeat(32)) return { keyId: k, key: v }; }
-  return null;
-}
-
-function extractMfst(html) {
-  let url = null, drm = null;
-  const VN = ['manifestUri', 'manifest_uri', 'streamUrl', 'streamURL', 'hlsUrl', 'hlsURL', 'videoUrl', 'videoURL', 'sourceUrl', 'sourceURL', 'liveUrl', 'liveURL', 'streamSrc', 'stream_src', 'playbackUrl'];
-  let m;
-  m = html.match(new RegExp('(?:const|var|let)\\s+(?:' + VN.join('|') + ')\\s*=\\s*[\'"]([^\'"]+)[\'"]', 'i'));
-  if (m && safe(m[1])) url = m[1];
-  if (!url) { m = html.match(/file\s*:\s*["']([^"']+\.m3u8[^"']*)/i); if (m && safe(m[1])) url = m[1]; }
-  if (!url) { m = html.match(/(?:src|source)\s*[=:]\s*["'](https?:\/\/[^"'\s]+\.(?:m3u8|mpd)[^"'\s]*)/i); if (m && safe(m[1])) url = m[1]; }
-  if (!url) { m = html.match(/https?:\/\/[^\s"'<>\\]+\.m3u8[^\s"'<>\\]*/); if (m) url = m[0]; }
-  if (!url) { m = html.match(/https?:\/\/[^\s"'<>\\]+\.mpd[^\s"'<>\\]*/); if (m) url = m[0]; }
-  if (!url) {
-    const ir = /<iframe[^>]+src=["']([^"']+)['"]/gi; let em;
-    while ((em = ir.exec(html)) !== null) { const c = em[1].replace(/&amp;/g, '&').trim(); if (safe(c) && !c.includes('blogger.com') && !c.includes('google.com')) return { streamUrl: c, drm: null, isEmbed: true, embedUrls: [c] }; }
-  }
-  drm = extractCK(html);
-  return url ? { streamUrl: url, drm } : null;
-}
-
-async function withR(fn, n = 2, d = 700) { for (let i = 0; i <= n; i++) { try { return await fn(); } catch (e) { if (i === n) throw e; await new Promise(r => setTimeout(r, d * Math.pow(2, i))); } } }
-function withTO(p, ms = CFG.PLAYER_TO) { let t; const tp = new Promise((_, r) => { t = setTimeout(() => r(new Error('Player init timed out')), ms); }); return Promise.race([p.finally(() => clearTimeout(t)), tp]); }
-
-async function resolveStream(url) {
-  const ck = CFG.CACHE_PFX + url; const c = cGet(ck); if (c) return c;
-  if (/\.m3u8([?&#]|$)/i.test(url)) { const r = { type: 'hls', url }; cSet(ck, r); return r; }
-  if (/\.mpd([?&#]|$)/i.test(url)) {
-    let drm = null;
-    if (drmKP && drmKP.includes(':')) { const sep = drmKP.indexOf(':'); drm = { keyId: drmKP.slice(0, sep).trim(), key: drmKP.slice(sep + 1).trim() }; }
-    const r = { type: 'dash', url, ...(drm && { drm }) }; cSet(ck, r); return r;
-  }
-  if (url.includes('.mpd!!')) {
-    const [mu, kp] = url.split('!!');
-    const r = kp && kp.includes(':') ? { type: 'dash', url: mu, drm: { keyId: kp.split(':')[0], key: kp.split(':')[1] } } : { type: 'dash', url: mu };
-    cSet(ck, r); return r;
-  }
-  return withR(async () => {
-    const html = await fetchProxied(url), ex = extractMfst(html);
-    if (!ex) throw new Error('No stream URL found');
-    if (ex.isEmbed) { const r = { type: 'embed', url: ex.streamUrl, embedUrls: ex.embedUrls || [ex.streamUrl] }; cSet(ck, r); return r; }
-    let { streamUrl, drm } = ex; if (!safe(streamUrl)) throw new Error('Unsafe URL');
-    if (!drm && drmKP && drmKP.includes(':')) { const sep = drmKP.indexOf(':'); drm = { keyId: drmKP.slice(0, sep).trim(), key: drmKP.slice(sep + 1).trim() }; }
-    const type = /\.m3u8([?&#]|$)/i.test(streamUrl) ? 'hls' : 'dash';
-    const r = { type, url: streamUrl, ...(drm && { drm }) }; cSet(ck, r); return r;
-  });
-}
-
-// ── Script loader ─────────────────────────
-const _sc = new Map();
-function loadSc(src) {
-  if (_sc.has(src)) return _sc.get(src);
-  const p = new Promise((res, rej) => {
-    if (document.querySelector(`script[src="${src}"]`)) return res();
-    const s = document.createElement('script'); s.src = src; s.async = true;
-    s.onload = res; s.onerror = () => rej(new Error('Load failed: ' + src));
-    document.head.appendChild(s);
-  });
-  _sc.set(src, p); return p;
-}
-
-// ── Embed Manager ─────────────────────────
-const EmbedMgr = (() => {
-  let _s = [], _i = 0, _lt = null, _si = null, _g = 0, _fr = null;
-  function _startSh() { D.embedShimmer.classList.remove('hidden'); D.shFill.style.width = '0%'; let p = 0; _si = setInterval(() => { const st = p < 50 ? 4 : p < 75 ? 2 : p < 85 ? .5 : 0; p = Math.min(85, p + st); D.shFill.style.width = p + '%'; }, 250); }
-  function _doneSh(ok = true) { clearInterval(_si); _si = null; D.shFill.style.width = ok ? '100%' : '30%'; setTimeout(() => D.embedShimmer.classList.add('hidden'), 350); }
-  function _showEE(icon, ttl, msg, canNext) { D.eeIcon.textContent = icon; D.eeTitle.textContent = ttl; D.eeMsg.textContent = msg; D.eeNext.style.display = (canNext && _s.length > 1) ? '' : 'none'; D.embedErr.classList.add('on'); }
-  function _hideEE() { D.embedErr.classList.remove('on'); }
-  function _load(idx, gen) {
-    if (typeof gen !== 'undefined' && gen !== _g) return;
-    _i = idx; _hideEE(); const url = _s[idx];
-    if (!url) { _showEE('🔗', 'No source', 'Source is missing.', false); return; }
-    clearTimeout(_lt); _startSh();
-    const fr = D.embedFrame.cloneNode(false); fr.id = 'embed-frame';
-    fr.setAttribute('sandbox', CFG.SANDBOX);
-    fr.setAttribute('allow', 'autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write; web-share; accelerometer; gyroscope');
-    fr.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
-    D.embedFrame.replaceWith(fr); D.embedFrame = fr; _fr = fr;
-    fr.classList.remove('visible'); fr.src = url;
-    fr.addEventListener('load', function ol() { fr.removeEventListener('load', ol); if (_g !== gen) return; clearTimeout(_lt); _doneSh(true); fr.classList.add('visible'); hideSw(); }, { once: true });
-    fr.addEventListener('error', function oe() { fr.removeEventListener('error', oe); if (_g !== gen) return; clearTimeout(_lt); _doneSh(false); const cn = _s.length > 1 && _i < _s.length - 1; _showEE('❌', 'Stream not working', 'Couldn\'t load this source.', cn); if (cn) setTimeout(() => { showSw('Switching to backup…'); _load(_i + 1); }, 1800); }, { once: true });
-    _lt = setTimeout(() => { if (_i !== idx) return; _doneSh(false); const cn = _s.length > 1 && idx < _s.length - 1; _showEE('⏱️', 'Stream not working', 'Took too long to load.', cn); if (cn) setTimeout(() => { showSw(); _load(idx + 1); }, 2000); }, CFG.EMBED_TO);
-  }
-  return {
-    mount(srcs, gen) { _s = Array.isArray(srcs) ? srcs.filter(safe) : []; _i = 0; _g = gen; if (!_s.length) { _showEE('🔗', 'Invalid source', 'The embed URL is not valid.', false); return; } D.embedHost.classList.add('active'); _fr = D.embedFrame; _load(0, gen); },
-    unmount() { clearTimeout(_lt); clearInterval(_si); _si = null; _g = -1; D.embedHost.classList.remove('active'); D.embedErr.classList.remove('on'); try { if (_fr) _fr.src = 'about:blank'; } catch {} if (_fr) _fr.classList.remove('visible'); _fr = D.embedFrame; D.embedShimmer.classList.remove('hidden'); _s = []; _i = 0; },
-    retry() { _hideEE(); _load(_i, _g); },
-    nextSource() { const n = (_i + 1) % _s.length; showSw(); _load(n, _g); },
-  };
-})();
-
-// ── Adapters ──────────────────────────────
-const ADAPTERS = [
-  {
-    name: 'native-hls', pri: 0, supports: s => s.type === 'hls' && isIOS(), async load() {},
-    init(hid, s) {
-      return withTO(new Promise((res, rej) => {
-        const v = newVid({ controls: true, muted: true, playsinline: true });
-        v.src = s.url; document.getElementById(hid).appendChild(v); curPlayer = v; instances.push(v);
-        v.addEventListener('loadedmetadata', () => { safePlay(v); res(); }, { once: true });
-        v.addEventListener('error', () => rej(new Error('Native HLS failed')), { once: true });
-      }), 20000);
-    }
-  },
-  {
-    name: 'jwplayer', pri: 1, supports: () => typeof jwplayer !== 'undefined', async load() {},
-    init(hid, s) {
-      return withTO(new Promise((res, rej) => {
-        const el = document.createElement('div'); el.id = hid + '_jw';
-        document.getElementById(hid).appendChild(el);
-        const p = jwplayer(el.id).setup({ file: s.url, type: s.type === 'hls' ? 'hls' : 'dash', width: '100%', height: '100%', autostart: !isIOS(), mute: isIOS(), hlshtml: true, primary: 'html5', skin: { name: 'netflix' }, cast: {}, stretching: 'uniform', ...(s.drm ? { drm: { clearkey: { keyId: s.drm.keyId, key: s.drm.key } } } : {}) });
-        let done = false;
-        p.on('ready', () => { if (done) return; done = true; instances.push(p); curPlayer = p; buildQualFromJW(p); res(); });
-        p.on('error', e => { if (!done) { done = true; rej(new Error(`JW: ${e.message}`)); } });
-        p.on('setupError', e => { if (!done) { done = true; rej(new Error(`JW Setup: ${e.message}`)); } });
-      }));
-    }
-  },
-  {
-    name: 'shaka', pri: 2, supports: () => true,
-    async load() { await loadSc('https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.compiled.min.js'); },
-    init(hid, s) {
-      return withTO(new Promise(async (res, rej) => {
-        let done = false; const D2 = fn => { if (!done) { done = true; fn(); } };
-        const v = newVid({ controls: true }); document.getElementById(hid).appendChild(v);
-        shaka.polyfill.installAll();
-        if (!shaka.Player.isBrowserSupported()) return D2(() => rej(new Error('Shaka: not supported')));
-        const p = new shaka.Player(v); instances.push(p); curPlayer = v;
-        p.configure({ streaming: { retryParameters: { maxAttempts: 5, baseDelay: 1000, backoffFactor: 2 }, bufferingGoal: 30, rebufferingGoal: 2, jumpLargeGaps: true }, manifest: { retryParameters: { maxAttempts: 5 } } });
-        p.addEventListener('error', e => { const c = e.detail?.code || 0; D2(() => rej(new Error(`Shaka: code ${c}`))); });
-        if (refP) p.getNetworkingEngine().registerRequestFilter((t, req) => { req.headers['Referer'] = refP; });
-        if (s.drm) p.configure({ drm: { clearKeys: { [s.drm.keyId]: s.drm.key } } });
-        try {
-          await p.load(s.url); setTimeout(() => safePlay(v), 100);
-          buildQualFromShaka(p);
-          D2(() => res());
-        } catch (e) { D2(() => rej(new Error(`Shaka: ${e.message}`))); }
-      }));
-    }
-  },
-  {
-    name: 'hlsjs', pri: 3, supports: s => s.type === 'hls',
-    async load() { await loadSc('https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js'); },
-    init(hid, s) {
-      return withTO(new Promise((res, rej) => {
-        if (!Hls.isSupported()) return rej(new Error('HLS.js: MSE not supported'));
-        const v = newVid({ controls: true }); document.getElementById(hid).appendChild(v); curPlayer = v;
-        const h = new Hls({ enableWorker: true, lowLatencyMode: true, backBufferLength: 90, maxBufferLength: 30, autoStartLoad: true, startPosition: -1 });
-        instances.push(h); let done = false;
-        h.on(Hls.Events.ERROR, (_, d) => { if (!d.fatal) return; if (!done) { if (d.type === Hls.ErrorTypes.NETWORK_ERROR) { h.startLoad(); return; } if (d.type === Hls.ErrorTypes.MEDIA_ERROR) { h.recoverMediaError(); return; } done = true; rej(new Error(`HLS.js: ${d.type}/${d.details}`)); } });
-        h.loadSource(s.url); h.attachMedia(v);
-        h.once(Hls.Events.MANIFEST_PARSED, () => {
-          if (done) return; done = true;
-          if (h.levels?.length) { buildQualOpts(h.levels.map((l, i) => ({ label: l.height ? `${l.height}p` : `${Math.round(l.bitrate / 1000)}k`, value: i })), idx => { h.currentLevel = idx; }); }
-          safePlay(v); res();
-        });
-      }));
-    }
-  },
-  {
-    name: 'dashjs', pri: 4, supports: s => s.type === 'dash',
-    async load() { await loadSc('https://cdn.dashjs.org/latest/dash.all.min.js'); },
-    init(hid, s) {
-      return withTO(new Promise((res, rej) => {
-        const v = newVid({ controls: true }); document.getElementById(hid).appendChild(v);
-        const p = dashjs.MediaPlayer().create(); instances.push(p); curPlayer = v; let done = false;
-        p.on(dashjs.MediaPlayer.events.PLAYBACK_STARTED, () => { if (done) return; done = true; buildQualFromDash(p); res(); });
-        p.on(dashjs.MediaPlayer.events.ERROR, e => { if (!done) { done = true; rej(new Error(`Dash.js: ${e.message || 'Unknown'}`)); } });
-        if (s.drm) p.setProtectionData({ 'org.w3.clearkey': { clearkeys: { [s.drm.keyId]: s.drm.key } } });
-        p.initialize(v, s.url, true);
-      }));
-    }
-  },
-  {
-    name: 'native', pri: 5, supports: () => true, async load() {},
-    init(hid, s) {
-      const ios = isIOS();
-      return withTO(new Promise((res, rej) => {
-        const v = newVid({ controls: true, ...(ios && { muted: true, playsinline: true }) }); v.src = s.url;
-        document.getElementById(hid).appendChild(v); curPlayer = v;
-        v.addEventListener(ios ? 'loadedmetadata' : 'canplay', () => { safePlay(v); clearQual(); res(); }, { once: true });
-        v.addEventListener('error', () => rej(new Error('Native: Format not supported')), { once: true });
-        safePlay(v);
-      }), ios ? 20000 : CFG.PLAYER_TO);
-    }
-  },
-];
-
-// ── Quality sheet ─────────────────────────
-let _qualH = null;
-function buildQualOpts(items, handler) {
-  _qualH = handler;
-  D.qualOpts.innerHTML = '';
-  const auto = document.createElement('div');
-  auto.className = 'sheet-opt active'; auto.textContent = 'Auto';
-  auto.onclick = () => { handler(-1); setActiveQual(auto); };
-  D.qualOpts.appendChild(auto);
-  items.forEach((item, i) => {
-    const el = document.createElement('div');
-    el.className = 'sheet-opt'; el.textContent = item.label;
-    el.onclick = () => { handler(item.value !== undefined ? item.value : i); setActiveQual(el); };
-    D.qualOpts.appendChild(el);
-  });
-}
-function setActiveQual(el) { D.qualOpts.querySelectorAll('.sheet-opt').forEach(e => e.classList.remove('active')); el.classList.add('active'); }
-function clearQual() { D.qualOpts.innerHTML = '<div class="sheet-opt active">Auto</div>'; _qualH = null; }
-
-function buildQualFromJW(p) {
-  const lv = p.getQualityLevels();
-  if (lv?.length) buildQualOpts(lv.map((l, i) => ({ label: l.label || `${l.height}p`, value: i })), idx => idx === -1 ? p.setCurrentQuality(-1) : p.setCurrentQuality(idx));
-  else clearQual();
-}
-function buildQualFromShaka(p) {
-  const tr = p.getVariantTracks().filter(t => t.type === 'variant');
-  if (tr.length) {
-    const u = [], se = new Set();
-    tr.forEach(t => { const lab = t.height ? `${t.height}p` : `${Math.round(t.bandwidth / 1000)}k`; if (!se.has(lab)) { se.add(lab); u.push({ label: lab, value: t }); } });
-    u.sort((a, b) => (a.value.bandwidth || 0) - (b.value.bandwidth || 0));
-    buildQualOpts(u, t => { if (t === -1) { p.configure({ abr: { enabled: true } }); } else { p.configure({ abr: { enabled: false } }); p.selectVariantTrack(t, true); } });
-  } else clearQual();
-}
-function buildQualFromDash(p) {
-  const bl = p.getBitrateInfoListFor('video');
-  if (bl?.length) buildQualOpts(bl.map((b, i) => ({ label: b.height ? `${b.height}p` : `${Math.round(b.bitrate / 1000)}k`, value: i })), idx => idx === -1 ? p.setAutoSwitchQualityFor('video', true) : p.setQualityFor('video', idx, true));
-  else clearQual();
-}
-
-// ── Player helpers ────────────────────────
-function newVid(a = {}) {
-  const v = document.createElement('video');
-  v.style.cssText = 'width:100%;height:100%;display:block;background:#000;';
-  Object.entries({ autoplay: false, playsinline: true, ...a }).forEach(([k, val]) => {
-    if (val === true) v.setAttribute(k, ''); else if (val !== false) v.setAttribute(k, val);
-  });
-  return v;
-}
-async function safePlay(v) { try { await v.play(); } catch (e) { if (e && (e.name === 'AbortError' || e.name === 'NotAllowedError')) return; } }
-
-function clearHost() {
-  EmbedMgr.unmount();
-  instances.forEach(p => { try { if (typeof p.destroy === 'function') p.destroy(); else if (typeof p.dispose === 'function') p.dispose(); else if (p instanceof HTMLMediaElement) { p.pause(); p.src = ''; p.load(); } } catch {} });
-  instances = []; D.host.innerHTML = ''; D.host.style.display = 'none';
-  curPlayer = null; clearQual();
-}
-
-// ── ChromeCast / AirPlay ──────────────────
-async function initCast() {
-  // Web Cast API
-  if (window.__onGCastApiAvailable === undefined) {
-    window['__onGCastApiAvailable'] = (isAvailable) => {
-      if (isAvailable) {
-        cast.framework.CastContext.getInstance().setOptions({
-          receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
-          autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED,
-        });
-        cast.framework.CastContext.getInstance().addEventListener(
-          cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
-          (e) => {
-            if (e.sessionState === cast.framework.SessionState.SESSION_STARTED) {
-              isCasting = true;
-              D.btnCast.dataset.casting = 'true';
-              toast('📺 Casting started');
-              if (curStream) castMedia(curStream.url || curStream.embedUrls?.[0]);
-            } else if (e.sessionState === cast.framework.SessionState.SESSION_ENDED) {
-              isCasting = false;
-              D.btnCast.dataset.casting = 'false';
-              toast('Cast session ended');
-            }
-          }
-        );
-      }
-    };
-    loadSc('https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1').catch(() => {});
-  }
-}
-
-function castMedia(url) {
-  try {
-    const ctx = cast.framework.CastContext.getInstance();
-    const session = ctx.getCurrentSession();
-    if (!session || !url) return;
-    const mediaInfo = new chrome.cast.media.MediaInfo(url, url.includes('.m3u8') ? 'application/x-mpegurl' : 'video/mp4');
-    const request = new chrome.cast.media.LoadRequest(mediaInfo);
-    session.loadMedia(request);
-  } catch (e) { toast('Cast media failed'); }
-}
-
-async function startCast() {
-  // AirPlay for Safari/iOS
-  const vid = D.stage.querySelector('video');
-  if (vid && vid.webkitSupportsPresentationMode && vid.webkitSupportsPresentationMode('picture-in-picture')) {
-    vid.webkitSetPresentationMode('picture-in-picture');
-    toast('📺 AirPlay menu opened');
-    return;
-  }
-  // AirPlay button for Safari
-  if (vid && typeof vid.remote !== 'undefined') {
-    try { await vid.remote.prompt(); return; } catch {}
-  }
-  // Google Cast
-  try {
-    const ctx = cast.framework.CastContext.getInstance();
-    ctx.requestSession();
-  } catch {
-    // Fallback message
-    toast('📺 Cast: connect via browser Cast button');
-  }
-}
-
-// ── Volume / Mute ─────────────────────────
-D.volSl.addEventListener('input', e => {
-  const v = Number(e.target.value) / 100;
-  setVolumeOnPlayer(v);
-  muteState = v === 0;
-  updateMuteIcon();
+player=jwplayer("player").setup({
+file:url,
+autostart:true,
+width:"100%",
+height:"100%"
 });
 
-function setVolumeOnPlayer(v) {
-  if (curPlayer instanceof HTMLMediaElement) { curPlayer.volume = v; curPlayer.muted = v === 0; }
-  else if (curPlayer && typeof curPlayer.getVolume === 'function') {
-    curPlayer.setVolume(v); if (v === 0) curPlayer.setMute(true); else curPlayer.setMute(false);
-  }
-}
-
-function toggleMute() {
-  muteState = !muteState;
-  const v = muteState ? 0 : parseInt(D.volSl.value, 10) || 80;
-  setVolumeOnPlayer(muteState ? 0 : v / 100);
-  if (!muteState && parseInt(D.volSl.value, 10) === 0) D.volSl.value = '80';
-  updateMuteIcon();
-  toast(muteState ? '🔇 Muted' : '🔊 Unmuted');
-}
-
-function updateMuteIcon() {
-  const path = document.getElementById('vol-x');
-  if (path) path.style.display = muteState ? 'none' : 'block';
-}
-
-// ── Playback ──────────────────────────────
-async function playStream(stream, gen) {
-  hideError();
-  clearHost();
-  D.initPh.style.display = 'none';
-
-  // Update sheet info
-  D.shFormat.textContent = stream.type?.toUpperCase() || '—';
-
-  if (stream.type === 'embed') {
-    setLoading(false);
-    EmbedMgr.mount(stream.embedUrls?.length ? stream.embedUrls : [stream.url], gen);
-    appState = 'playing';
-    showCtrl();
-    return;
-  }
-
-  D.host.style.display = 'block';
-  const cands = ADAPTERS.filter(a => { try { return a.supports(stream); } catch { return false; } }).sort((a, b) => a.pri - b.pri);
-  let ok = false, lastE = '', okAdapter = '';
-
-  for (const adapter of cands) {
-    if (gen !== playGen) return;
-    setLoading(true, cands.indexOf(adapter) === 0 ? 'Loading stream…' : `Trying ${adapter.name}…`, Math.round((cands.indexOf(adapter) / cands.length) * 90));
-    const wid = 'ph_' + Date.now();
-    const wrap = document.createElement('div');
-    wrap.id = wid; wrap.style.cssText = 'width:100%;height:100%;position:absolute;inset:0;background:#000;';
-    D.host.appendChild(wrap);
-    try {
-      await adapter.load(); if (gen !== playGen) return;
-      await adapter.init(wid, stream);
-      ok = true; okAdapter = adapter.name; curAdapter = adapter.name;
-      D.shAdapter.textContent = adapter.name;
-      break;
-    } catch (e) {
-      lastE = e?.message || 'Unknown';
-      try { D.host.removeChild(wrap); } catch {}
-      if (cands.indexOf(adapter) < cands.length - 1) showSw('Trying next source…');
-    }
-  }
-
-  if (gen !== playGen) return;
-  if (!ok) { hideSw(); showError(lastE); }
-  else {
-    hideSw();
-    appState = 'playing';
-    // Apply initial volume
-    const initVol = parseInt(D.volSl.value, 10) / 100;
-    setTimeout(() => setVolumeOnPlayer(initVol), 400);
-    showCtrl();
-  }
-  setLoading(false);
-  setActivChip(curIdx);
-}
-
-// ── Source chips ──────────────────────────
-function buildChips(list) {
-  D.srcStrip.innerHTML = ''; chipEls = [];
-  if (!list || !list.length) { D.srcStrip.classList.remove('on'); return; }
-  list.forEach((s, i) => {
-    const L = lbl(i), el = document.createElement('div');
-    el.className = 'src-chip'; el.dataset.i = i;
-    el.innerHTML = `<span class="blink"></span>${L.icon} ${L.name}`;
-    el.addEventListener('click', () => { if (+el.dataset.i !== curIdx) go(+el.dataset.i); });
-    D.srcStrip.appendChild(el); chipEls.push(el);
-  });
-  D.srcStrip.classList.add('on');
-  D.shSource.textContent = `Source 1 of ${list.length}`;
-}
-function setActivChip(i) {
-  chipEls.forEach((c, j) => c.classList.toggle('active', j === i));
-  D.shSource.textContent = `Source ${i + 1} of ${chipEls.length}`;
-}
-
-// ── Navigation ────────────────────────────
-async function go(idx) {
-  if (!streams.length) return;
-  idx = Math.max(0, Math.min(idx, streams.length - 1));
-  curIdx = idx; curStream = streams[idx];
-  const gen = ++playGen; retryCount = 0;
-  setActivChip(idx); updateTopBar();
-  try { localStorage.setItem(CFG.STORAGE_KEY, String(idx)); } catch {}
-  try { await playStream(curStream, gen); } catch {}
-}
-
-function nextStream() {
-  if (!streams.length) return;
-  go((curIdx + 1) % streams.length);
-  toast(`${lbl((curIdx + 1) % streams.length).icon} Switching…`);
-}
-
-function refresh() {
-  if (!curStream) return;
-  if (curStream.type !== 'embed') cDel(CFG.CACHE_PFX + (curStream.originalUrl || curStream.url));
-  if (curStream.type === 'embed') { EmbedMgr.retry(); toast('↺ Reloading…'); return; }
-  go(curIdx); toast('↺ Refreshed');
-}
-
-function retry() {
-  if (retryCount < CFG.MAX_RETRY) { retryCount++; hideError(); go(curIdx); }
-  else toast('No more retries — try a different source');
-}
-
-// ── Gestures ──────────────────────────────
-let ts = null;
-D.stage.addEventListener('touchstart', e => { const t = e.touches[0]; ts = { x: t.clientX, y: t.clientY, t: Date.now() }; }, { passive: true });
-D.stage.addEventListener('touchend', e => {
-  if (!ts) return;
-  const t = e.changedTouches[0]; const dx = t.clientX - ts.x, dy = t.clientY - ts.y, dt = Date.now() - ts.t; ts = null;
-  if (dt > 600 || (Math.abs(dx) < 50 && Math.abs(dy) < 50)) return;
-  if (Math.abs(dx) > Math.abs(dy)) {
-    if (dx < -50) { nextStream(); toast('→ Next stream'); }
-    else if (dx > 50) { refresh(); toast('↺ Refreshed'); }
-  } else {
-    const delta = dy < 0 ? 8 : -8;
-    const nv = Math.max(0, Math.min(100, parseInt(D.volSl.value, 10) + delta));
-    D.volSl.value = String(nv); setVolumeOnPlayer(nv / 100);
-    toast(dy < 0 ? `🔊 ${nv}%` : `🔉 ${nv}%`);
-  }
-}, { passive: true });
-
-// ── Keyboard ──────────────────────────────
-document.addEventListener('keydown', e => {
-  if (e.target !== document.body) return;
-  const k = e.key.toLowerCase();
-  if (k === 's') { e.preventDefault(); nextStream(); }
-  if (k === 'r') { e.preventDefault(); refresh(); }
-  if (k === 'f') { e.preventDefault(); toggleFullscreen(); }
-  if (k === 'p') { e.preventDefault(); togglePiP(); }
-  if (k === 'v') { e.preventDefault(); toggleMute(); }
-  if (k === 'm') { e.preventDefault(); toggleMute(); }
-  if (e.key === '?') { e.preventDefault(); showShortcuts(); }
-  if (e.key === 'ArrowUp') { e.preventDefault(); D.volSl.value = String(Math.min(100, parseInt(D.volSl.value, 10) + 5)); D.volSl.dispatchEvent(new Event('input')); }
-  if (e.key === 'ArrowDown') { e.preventDefault(); D.volSl.value = String(Math.max(0, parseInt(D.volSl.value, 10) - 5)); D.volSl.dispatchEvent(new Event('input')); }
-  const n = parseInt(e.key, 10); if (!isNaN(n) && n >= 1 && n <= streams.length) { e.preventDefault(); go(n - 1); }
+player.on("ready",()=>{
+document.getElementById("loading").style.display="none";
 });
 
-// ── Fullscreen ────────────────────────────
-function toggleFullscreen() {
-  if (document.fullscreenElement || document.webkitFullscreenElement) {
-    (document.exitFullscreen || document.webkitExitFullscreen).call(document).catch(() => {});
-    return;
-  }
-  if (curAdapter === 'jwplayer' && curPlayer && typeof curPlayer.setFullscreen === 'function') { curPlayer.setFullscreen(true); return; }
-  const vid = D.stage.querySelector('video');
-  if (vid) {
-    if (vid.requestFullscreen) { vid.requestFullscreen().catch(() => toast('Fullscreen unavailable')); return; }
-    if (vid.webkitEnterFullscreen) { vid.webkitEnterFullscreen(); return; }
-  }
-  if (D.embedFrame && curStream?.type === 'embed') {
-    if (D.embedFrame.requestFullscreen) D.embedFrame.requestFullscreen().catch(() => {});
-    return;
-  }
-  (D.stage.requestFullscreen || D.stage.webkitRequestFullscreen).call(D.stage).catch(() => toast('Fullscreen not supported'));
+player.on("error",()=>nextStream());
 }
 
-function togglePiP() {
-  if (!curPlayer || !(curPlayer instanceof HTMLVideoElement)) { toast('PiP not available'); return; }
-  if (document.pictureInPictureElement) document.exitPictureInPicture();
-  else curPlayer.requestPictureInPicture().catch(() => toast('PiP not available'));
+/* STREAM CONTROL */
+function nextStream(){
+index=(index+1)%streams.length;
+play(streams[index]);
+toast("Switched stream");
 }
 
-// ── Settings sheet ────────────────────────
-function openSettings() { document.getElementById('settings-sheet').classList.add('on'); }
-function closeSettings() { document.getElementById('settings-sheet').classList.remove('on'); }
-function openEPG() {
-  const titleEl = document.getElementById('epg-sheet-ttl');
-  if (titleEl) titleEl.textContent = _postTitle ? `📋 Related to this match` : '📋 Sports803 Posts';
-  buildEPGSheet();
-  document.getElementById('epg-sheet').classList.add('on');
-}
-function closeEPG() { document.getElementById('epg-sheet').classList.remove('on'); }
-
-// ── Shortcuts overlay ─────────────────────
-const SHORTCUTS = [
-  ['S', 'Next stream'], ['R', 'Refresh'], ['F', 'Fullscreen'], ['P', 'Picture-in-Picture'],
-  ['M/V', 'Mute toggle'], ['?', 'Shortcuts'], ['↑↓', 'Volume'], ['1-9', 'Source select'], ['Swipe ←→', 'Navigate'],
-];
-function showShortcuts() {
-  const grid = document.getElementById('sc-grid');
-  grid.innerHTML = SHORTCUTS.map(([k, d]) =>
-    `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px"><span style="background:var(--red);color:#fff;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;flex-shrink:0;font-family:'Rajdhani',sans-serif">${k}</span><span style="color:var(--t2);font-size:12px">${d}</span></div>`
-  ).join('');
-  document.getElementById('sc-overlay').style.display = 'flex';
-}
-function closeShortcuts() { document.getElementById('sc-overlay').style.display = 'none'; }
-
-// ── Stream loading ────────────────────────
-async function loadStreams() {
-  const result = []; setLoading(true, 'Finding best stream…', 12);
-  if (embedP.length) result.push({ type: 'embed', url: embedP[0], embedUrls: embedP, originalUrl: embedP[0] });
-  const resolved = await Promise.allSettled(moraP.map(url => resolveStream(url)));
-  const mora = [];
-  resolved.forEach((r, i) => { if (r.status === 'fulfilled' && r.value) mora.push({ ...r.value, originalUrl: moraP[i] }); });
-  if (isIOS()) { const hls = mora.filter(s => s.type === 'hls'), oth = mora.filter(s => s.type !== 'hls' && s.type !== 'dash'); result.push(...hls, ...oth); }
-  else result.push(...mora);
-  return result;
+function refresh(){
+play(streams[index]);
+toast("Refreshing...");
 }
 
-// ── Init ──────────────────────────────────
-(async () => {
-  initCast().catch(() => {});
-  fetchPostMeta().catch(() => {});
+/* FULLSCREEN */
+function fullscreen(){
+let el=document.documentElement;
+if(!document.fullscreenElement) el.requestFullscreen();
+else document.exitFullscreen();
+}
 
-  D.tbChannel.textContent = chanName;
+/* 🔥 AUTO META FETCH (Blogger / OG tags) */
+function fetchMeta(){
+try{
+let parentDoc=window.parent.document;
 
-  if (!moraP.length && !embedP.length) {
-    D.initPh.innerHTML = '<div class="ip-logo">SPORTS 803</div><div class="ip-txt" style="color:rgba(255,255,255,.25)">No stream source provided.</div>';
-    setLoading(false); return;
-  }
+// title
+let title=
+parentDoc.querySelector("meta[property='og:title']")?.content ||
+parentDoc.title ||
+"Sports 803";
 
-  streams = await loadStreams();
-  if (!streams.length) {
-    D.initPh.innerHTML = '<div class="ip-logo">SPORTS 803</div><div class="ip-txt" style="color:rgba(255,255,255,.25)">No playable streams found.</div>';
-    setLoading(false); return;
-  }
+document.getElementById("title").innerText=title;
 
-  buildChips(streams);
+// image
+let img=
+parentDoc.querySelector("meta[property='og:image']")?.content ||
+parentDoc.querySelector("img")?.src ||
+"";
 
-  let savedIdx = 0;
-  try { const s = parseInt(localStorage.getItem(CFG.STORAGE_KEY), 10); if (!isNaN(s) && s >= 0 && s < streams.length) savedIdx = s; } catch {}
-  await go(savedIdx);
-})();
+if(img) document.getElementById("thumb").src=img;
 
-// ── Public ────────────────────────────────
-return {
-  go, nextStream, refresh, retry, toggleFullscreen, togglePiP, toggleMute, startCast,
-  openSettings, closeSettings, openEPG, closeEPG, showShortcuts, closeShortcuts, runSpeedTest,
-  retryEmbed: () => EmbedMgr.retry(),
-  nextEmbedSource: () => EmbedMgr.nextSource(),
-};
+}catch(e){
+document.getElementById("title").innerText="Sports 803";
+}
+}
 
-})();
+/* 📡 CHROMECAST */
+let castSession=null;
+
+function cast(){
+if(!window.cast || !cast.framework){
+toast("Cast not supported");
+return;
+}
+
+const context=cast.framework.CastContext.getInstance();
+context.requestSession().then(()=>{
+castSession=context.getCurrentSession();
+
+const mediaInfo=new chrome.cast.media.MediaInfo(streams[index],'video/mp4');
+const request=new chrome.cast.media.LoadRequest(mediaInfo);
+
+castSession.loadMedia(request);
+toast("Casting...");
+});
+}
+
+/* 🍎 AIRPLAY */
+function airplay(){
+let video=document.querySelector("video");
+
+if(video && video.webkitShowPlaybackTargetPicker){
+video.webkitShowPlaybackTargetPicker();
+}else{
+toast("AirPlay not supported");
+}
+}
+
+/* UI */
+function openSheet(){document.getElementById("sheet").classList.add("show")}
+function closeSheet(){document.getElementById("sheet").classList.remove("show")}
+
+/* TOAST */
+function toast(msg){
+let t=document.createElement("div");
+t.innerText=msg;
+t.style.position="absolute";
+t.style.bottom="80px";
+t.style.left="50%";
+t.style.transform="translateX(-50%)";
+t.style.background="#111";
+t.style.padding="8px 16px";
+t.style.borderRadius="20px";
+document.body.appendChild(t);
+setTimeout(()=>t.remove(),2000);
+}
+
 </script>
 
 </body>
