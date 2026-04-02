@@ -15,24 +15,32 @@
     --slide-duration: 10s;
   }
 
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
   html, body {
-    width: 100vw; height: 100vh;
-    margin: 0; padding: 0; overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
     background: #000;
     font-family: 'Raleway', sans-serif;
   }
 
-  .slideshow { position: relative; width: 100%; height: 100%; }
+  .slideshow {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
 
   .slide {
-    position: absolute; inset: 0;
+    position: absolute;
+    inset: 0;
     opacity: 0;
     animation: slideLife var(--slide-duration) linear infinite;
     display: flex;
     align-items: center;
   }
 
-  /* Stagger delays */
+  /* Staggered delays */
   .slide:nth-child(1)  { animation-delay: 0s; }
   .slide:nth-child(2)  { animation-delay: calc(1 * var(--slide-duration)); }
   .slide:nth-child(3)  { animation-delay: calc(2 * var(--slide-duration)); }
@@ -43,190 +51,227 @@
   .slide:nth-child(8)  { animation-delay: calc(7 * var(--slide-duration)); }
   .slide:nth-child(9)  { animation-delay: calc(8 * var(--slide-duration)); }
   .slide:nth-child(10){ animation-delay: calc(9 * var(--slide-duration)); }
-  /* ... continue up to 20 as needed */
+  .slide:nth-child(11){ animation-delay: calc(10* var(--slide-duration)); }
+  .slide:nth-child(12){ animation-delay: calc(11* var(--slide-duration)); }
+  .slide:nth-child(13){ animation-delay: calc(12* var(--slide-duration)); }
+  .slide:nth-child(14){ animation-delay: calc(13* var(--slide-duration)); }
+  .slide:nth-child(15){ animation-delay: calc(14* var(--slide-duration)); }
+  .slide:nth-child(16){ animation-delay: calc(15* var(--slide-duration)); }
+  .slide:nth-child(17){ animation-delay: calc(16* var(--slide-duration)); }
+  .slide:nth-child(18){ animation-delay: calc(17* var(--slide-duration)); }
+  .slide:nth-child(19){ animation-delay: calc(18* var(--slide-duration)); }
+  .slide:nth-child(20){ animation-delay: calc(19* var(--slide-duration)); }
 
   @keyframes slideLife {
     0%   { opacity: 0; }
-    3%   { opacity: 1; }
-    88%  { opacity: 1; }
-    97%  { opacity: 0; }
+    5%   { opacity: 1; }
+    90%  { opacity: 1; }
+    98%  { opacity: 0; }
     100% { opacity: 0; }
   }
 
-  /* Left Image Panel */
-  .left-image {
-    width: 48%;
+  /* Background Image on LEFT */
+  .slide-bg {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 58%;
     height: 100%;
     background-size: cover;
     background-position: center;
-    position: relative;
+    filter: brightness(0.75) saturate(1.2);
     animation: subtleZoom 14s ease-in-out infinite alternate;
-  }
-  .left-image::after {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(to right, rgba(59,31,10,0.65), rgba(139,26,26,0.35));
   }
 
   @keyframes subtleZoom {
     from { transform: scale(1.02); }
-    to   { transform: scale(1.09); }
+    to   { transform: scale(1.08); }
   }
 
-  /* Right Content Panel */
+  /* Content Panel on RIGHT */
   .content-panel {
-    width: 520px;
-    max-width: 90%;
-    margin-left: auto;
-    margin-right: 90px;
-    padding: 48px 52px;
-    background: rgba(10,4,2,0.82);
-    border-left: 6px solid var(--gold);
-    backdrop-filter: blur(10px);
+    position: relative;
     z-index: 10;
-    align-self: center;
+    width: 42%;
+    height: 100%;
+    padding: 80px 70px 80px 60px;
+    background: rgba(10, 4, 2, 0.82);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-left: 8px solid var(--gold);
   }
 
   .brand-tag {
     font-family: 'Cinzel Decorative', serif;
-    font-size: 13px; letter-spacing: 5px;
-    color: var(--gold); text-transform: uppercase;
+    font-size: 14px;
+    letter-spacing: 5px;
+    color: var(--gold);
+    text-transform: uppercase;
     margin-bottom: 16px;
   }
 
   .slide-headline {
     font-family: 'Playfair Display', serif;
-    font-size: 39px; font-weight: 700; line-height: 1.15;
-    color: var(--cream); margin-bottom: 20px;
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--cream);
+    margin-bottom: 24px;
   }
-  .slide-headline em { color: var(--gold); font-style: italic; }
+  .slide-headline em {
+    font-style: italic;
+    color: var(--gold);
+  }
 
   .slide-body {
-    font-size: 16px; line-height: 1.65;
-    color: rgba(245,230,200,0.88);
-    margin-bottom: 30px;
+    font-size: 16.5px;
+    line-height: 1.7;
+    color: rgba(245, 230, 200, 0.9);
+    margin-bottom: 32px;
   }
 
   .cta-row {
-    display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 28px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 32px;
   }
   .cta-chip {
-    padding: 10px 22px;
-    border: 1.6px solid var(--gold);
+    padding: 12px 26px;
+    border: 2px solid var(--gold);
     color: var(--gold);
-    font-size: 13px; font-weight: 600; letter-spacing: 1.5px;
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
     text-transform: uppercase;
+    background: transparent;
   }
   .cta-chip.filled {
-    background: var(--gold); color: var(--earth);
+    background: var(--gold);
+    color: var(--earth);
   }
 
-  /* Top Bar & Ticker (same as previous version) */
+  .contact-strip {
+    border-top: 1px solid rgba(212,160,23,0.4);
+    padding-top: 24px;
+    display: grid;
+    gap: 12px;
+  }
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    color: var(--cream);
+  }
+  .contact-item .icon {
+    width: 32px;
+    height: 32px;
+    background: var(--gold);
+    color: var(--earth);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: bold;
+  }
+
+  /* Top Bar */
   .top-bar {
-    position: fixed; top: 20px; left: 20px; right: 20px; z-index: 99;
-    display: flex; align-items: center; justify-content: space-between;
-    height: 58px; padding: 0 30px;
-    background: rgba(10,4,2,.82); border-bottom: 2px solid var(--gold);
-    backdrop-filter: blur(8px);
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    height: 60px;
+    background: rgba(10,4,2,0.85);
+    border-bottom: 2px solid var(--gold);
   }
-  .logo-text { font-size: 26px; letter-spacing: 4px; color: var(--gold); }
-  .logo-sub  { font-size: 10.5px; letter-spacing: 4.5px; color: var(--cream); opacity: 0.75; }
+  .logo-text { font-size: 28px; color: var(--gold); letter-spacing: 4px; font-family: 'Cinzel Decorative', serif; }
 
+  /* Bottom Ticker */
   .ticker-bar {
-    position: fixed; bottom: 20px; left: 20px; right: 20px; z-index: 99;
-    background: rgba(212,160,23,.94); height: 40px;
-    display: flex; align-items: center; overflow: hidden;
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    height: 42px;
+    background: rgba(212,160,23,0.95);
+    display: flex;
+    align-items: center;
+    z-index: 100;
   }
   .ticker-label {
-    background: var(--deep-red); color: var(--cream);
-    font-family: 'Cinzel Decorative', serif; font-size: 10.5px;
-    letter-spacing: 3px; padding: 0 20px; height: 100%; display: flex; align-items: center;
+    background: var(--deep-red);
+    color: white;
+    padding: 0 24px;
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 12px;
+    letter-spacing: 3px;
+    height: 100%;
+    display: flex;
+    align-items: center;
   }
   .ticker-text {
-    white-space: nowrap; animation: tickerScroll 26s linear infinite;
-    font-size: 14.5px; font-weight: 600; color: var(--earth); letter-spacing: 1.8px;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--earth);
+    animation: tickerScroll 28s linear infinite;
   }
-  @keyframes tickerScroll { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+  @keyframes tickerScroll {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(-100%); }
+  }
 </style>
 </head>
 <body>
 
 <div class="top-bar">
-  <div>
-    <div class="logo-text">JANZI</div>
-    <div class="logo-sub">East African Music Experience</div>
-  </div>
-  <div style="font-size:19px; font-weight:600; color:#D4A017;">📞 0773 033 240</div>
+  <div class="logo-text">JANZI</div>
+  <div style="color:#D4A017; font-size:13px; letter-spacing:3px;">EAST AFRICAN MUSIC EXPERIENCE</div>
 </div>
 
 <div class="slideshow">
 
-  <!-- SLIDE 1 - Group of Janzi instruments -->
+  <!-- SLIDE 1 - Example with first image -->
   <div class="slide">
-    <div class="left-image" style="background-image: url('https://your-image-host.com/ToW3K.jpg');"></div>
+    <div class="slide-bg" style="background-image: url('https://files.oaiusercontent.com/file-W1pxw?se=2026-04-03T00%3A00%3A00Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D3628800%2C%20immutable&rscd=attachment%3B%20filename%3Dimage.jpg&sig=...');"></div> <!-- Replace with your actual image path -->
     <div class="content-panel">
-      <div class="brand-tag">Janzi Instruments</div>
-      <div class="slide-headline">Handcrafted <em>East African Harps</em></div>
-      <div class="slide-body">Each Janzi is uniquely carved from premium woods — a fusion of tradition and modern innovation.</div>
+      <div class="brand-tag">Janzi Band • Uganda</div>
+      <div class="slide-headline">Where <em>Ancient Strings</em> Meet Modern Sound</div>
+      <div class="slide-body">Experience the revolutionary Janzi instrument — a masterpiece of East African craftsmanship.</div>
       <div class="cta-row">
-        <div class="cta-chip filled">Buy a Janzi</div>
-        <div class="cta-chip">Learn to Play</div>
+        <div class="cta-chip filled">Learn the Janzi</div>
+        <div class="cta-chip">Book an Event</div>
+      </div>
+      <div class="contact-strip">
+        <div class="contact-item"><div class="icon">📞</div>0773 033 240</div>
+        <div class="contact-item"><div class="icon">🌐</div><a href="https://janzimusic.com">janzimusic.com</a></div>
       </div>
     </div>
   </div>
 
-  <!-- SLIDE 2 - Ssewa Ssewa sitting with Janzi (orange background) -->
-  <div class="slide">
-    <div class="left-image" style="background-image: url('https://your-image-host.com/ZFEAR.jpg');"></div>
-    <div class="content-panel">
-      <div class="brand-tag">Ssewa Ssewa</div>
-      <div class="slide-headline">The <em>Master</em> of the Janzi</div>
-      <div class="slide-body">Deep connection. Pure soul. Experience the sound that is redefining East African music.</div>
-      <div class="cta-row">
-        <div class="cta-chip filled">Watch Performances</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SLIDE 3 - Colorful group portrait -->
-  <div class="slide">
-    <div class="left-image" style="background-image: url('https://your-image-host.com/xgrZ1.jpg');"></div>
-    <div class="content-panel">
-      <div class="brand-tag">Janzi Band</div>
-      <div class="slide-headline">Where <em>Culture</em> Comes Alive</div>
-      <div class="slide-body">Vibrant energy, rich heritage, and unforgettable live sound.</div>
-      <div class="cta-row">
-        <div class="cta-chip filled">Book the Band</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Add more slides following the same pattern using your other uploaded images (IMG_xxxx, performance shots, DJ + Janzi, etc.) -->
-
-  <!-- Example for another slide (replace with your image ID) -->
-  <!--
-  <div class="slide">
-    <div class="left-image" style="background-image: url('https://your-image-host.com/VXZaw.jpg');"></div>
-    <div class="content-panel">
-      <div class="brand-tag">Fusion Sound</div>
-      <div class="slide-headline">Janzi + <em>Electronic Beats</em></div>
-      <div class="slide-body">Ancient strings meet modern DJ culture for a unique experience.</div>
-      <div class="cta-row">
-        <div class="cta-chip filled">Book Now</div>
-      </div>
-    </div>
-  </div>
-  -->
+  <!-- Add your other 19 slides here following the same structure -->
+  <!-- Just change the background-image URL for each slide and update the text as needed -->
 
 </div>
 
-<!-- Bottom Ticker -->
 <div class="ticker-bar">
   <div class="ticker-label">JANZI BAND</div>
   <div class="ticker-track">
     <div class="ticker-text">
-      🎵 Learn the Janzi Instrument • 📞 0773 033 240 • 🌐 janzimusic.com • 
-      📸 @janzi_band • Weddings • Festivals • Corporate Events • Private Sessions
+      🎵 Learn the Janzi Instrument • Book Ssewa Ssewa &amp; Janzi Band • 
+      📞 0773 033 240 • 🌐 janzimusic.com • 📸 @janzi_band • 
+      Weddings • Festivals • Corporate Events • Private Sessions ✨
     </div>
   </div>
 </div>
