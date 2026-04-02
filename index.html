@@ -2,272 +2,752 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Sports 803 Player</title>
 
-<script src="https://cdn.jwplayer.com/libraries/IDzF9Zmk.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 
-<!-- Chromecast -->
+<script src="https://cdn.jwplayer.com/libraries/IDzF9Zmk.js"></script>
 <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 
 :root{
---red:#e5181a;
---bg:#000;
---glass:rgba(0,0,0,.6);
---text:#fff;
---dim:rgba(255,255,255,.6);
+  --red:#e5181a;
+  --red2:#ff2d2f;
+  --bg:#0a0a0a;
+  --surface:#111;
+  --surface2:#1a1a1a;
+  --surface3:#222;
+  --glass:rgba(10,10,10,.85);
+  --text:#fff;
+  --dim:rgba(255,255,255,.55);
+  --border:rgba(255,255,255,.08);
+  --nav-h:60px;
+  --top-h:56px;
 }
 
-body{background:#000;font-family:sans-serif;color:#fff;overflow:hidden}
+html,body{
+  background:var(--bg);
+  font-family:'Barlow',sans-serif;
+  color:var(--text);
+  overflow:hidden;
+  height:100%;
+  width:100%;
+  position:fixed;
+}
 
-#player{position:fixed;inset:0}
+/* ── PLAYER ─────────────────────────────── */
+#player-wrap{
+  position:fixed;
+  inset:0;
+  bottom:var(--nav-h);
+}
+#player{width:100%;height:100%}
 
-/* TOP BAR */
+/* ── LOADING SCREEN ─────────────────────── */
+#loading{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  background:var(--bg);
+  z-index:30;
+  gap:18px;
+}
+.logo-badge{
+  display:flex;align-items:center;gap:8px;
+}
+.logo-s{
+  width:42px;height:42px;
+  background:var(--red);
+  border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;font-size:22px;letter-spacing:-1px;
+}
+.logo-text{
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;font-size:20px;letter-spacing:.5px;
+  line-height:1.1;
+}
+.logo-text span{color:var(--red)}
+.spinner{
+  width:36px;height:36px;
+  border:3px solid var(--surface3);
+  border-top-color:var(--red);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loading p{color:var(--dim);font-size:13px}
+
+/* ── TOP BAR ─────────────────────────────── */
 #topbar{
-position:absolute;top:0;left:0;right:0;
-display:flex;align-items:center;gap:10px;
-padding:10px;
-background:var(--glass);
-backdrop-filter:blur(10px);
-z-index:10;
+  position:absolute;
+  top:0;left:0;right:0;
+  height:var(--top-h);
+  display:flex;align-items:center;gap:10px;
+  padding:0 12px;
+  background:linear-gradient(to bottom,rgba(0,0,0,.92) 0%,transparent 100%);
+  z-index:10;
+  transition:opacity .3s;
 }
+#topbar.hide{opacity:0;pointer-events:none}
 
 #thumb{
-width:40px;height:40px;
-border-radius:6px;
-object-fit:cover;
-background:#111;
+  width:34px;height:34px;
+  border-radius:6px;
+  object-fit:cover;
+  background:var(--surface3);
+  flex-shrink:0;
+  border:1.5px solid var(--border);
 }
-
+#title-wrap{flex:1;min-width:0}
 #title{
-font-size:13px;
-font-weight:600;
-flex:1;
+  font-size:13px;font-weight:600;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+#subtitle{font-size:11px;color:var(--dim);margin-top:1px}
+
+.live-dot{
+  display:flex;align-items:center;gap:5px;
+  background:var(--red);
+  padding:3px 8px;border-radius:4px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;font-size:11px;letter-spacing:.8px;
+  flex-shrink:0;
+}
+.live-dot::before{
+  content:'';width:6px;height:6px;
+  border-radius:50%;background:#fff;
+  animation:pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── STREAM SWITCHER ─────────────────────── */
+#stream-bar{
+  position:absolute;
+  top:var(--top-h);left:0;right:0;
+  display:flex;gap:6px;
+  padding:8px 12px;
+  overflow-x:auto;
+  scrollbar-width:none;
+  background:linear-gradient(to bottom,rgba(0,0,0,.7) 0%,transparent 100%);
+  z-index:9;
+  transition:opacity .3s;
+}
+#stream-bar.hide{opacity:0;pointer-events:none}
+#stream-bar::-webkit-scrollbar{display:none}
+
+.stream-pill{
+  padding:5px 14px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:20px;
+  font-size:12px;font-weight:600;
+  white-space:nowrap;cursor:pointer;
+  transition:all .2s;
+  flex-shrink:0;
+}
+.stream-pill.active{
+  background:var(--red);
+  border-color:var(--red);
 }
 
-#live{color:red;font-size:11px;font-weight:700}
-
-/* CONTROLS */
-#controls{
-position:absolute;
-bottom:0;left:0;right:0;
-display:flex;gap:8px;
-padding:10px;
-overflow-x:auto;
-background:var(--glass);
-backdrop-filter:blur(10px);
+/* ── CONTROLS (center tap zone) ──────────── */
+#tap-zone{
+  position:absolute;
+  inset:var(--top-h) 0 var(--nav-h) 0;
+  z-index:5;
 }
 
-.btn{
-padding:10px 14px;
-background:#111;
-border-radius:8px;
-font-size:13px;
-white-space:nowrap;
+/* ── CENTER CONTROLS (shown on tap) ──────── */
+#center-controls{
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  display:flex;align-items:center;gap:24px;
+  z-index:8;
+  opacity:0;pointer-events:none;
+  transition:opacity .25s;
+}
+#center-controls.show{opacity:1;pointer-events:all}
+.ctrl-btn{
+  width:52px;height:52px;
+  background:rgba(0,0,0,.65);
+  border-radius:50%;
+  backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;cursor:pointer;
+  border:1px solid rgba(255,255,255,.12);
+  transition:transform .15s,background .15s;
+}
+.ctrl-btn:active{transform:scale(.88);background:rgba(229,24,26,.5)}
+.ctrl-btn.main{
+  width:64px;height:64px;font-size:28px;
+  background:var(--red);border-color:var(--red2);
 }
 
-/* SHEET */
+/* ── BOTTOM NAV ──────────────────────────── */
+#bottom-nav{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  height:var(--nav-h);
+  background:var(--glass);
+  backdrop-filter:blur(16px);
+  border-top:1px solid var(--border);
+  display:flex;
+  z-index:20;
+}
+.nav-item{
+  flex:1;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:3px;cursor:pointer;
+  font-size:10px;color:var(--dim);
+  font-weight:600;letter-spacing:.4px;
+  text-transform:uppercase;
+  transition:color .2s;
+  position:relative;
+}
+.nav-item.active{color:var(--red)}
+.nav-item .nav-icon{font-size:20px;line-height:1}
+.nav-item.active::after{
+  content:'';
+  position:absolute;top:0;
+  width:24px;height:2px;
+  background:var(--red);
+  border-radius:0 0 3px 3px;
+}
+
+/* ── SHEET (bottom drawer) ────────────────── */
+#overlay{
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.6);
+  z-index:25;
+}
+#overlay.show{display:block}
+
 #sheet{
-position:fixed;
-bottom:-100%;
-left:0;right:0;
-background:#111;
-padding:20px;
-border-radius:16px 16px 0 0;
-transition:.3s;
-z-index:20;
+  position:fixed;
+  bottom:-100%;left:0;right:0;
+  background:var(--surface);
+  border-radius:20px 20px 0 0;
+  padding:0 0 env(safe-area-inset-bottom,12px) 0;
+  transition:bottom .3s cubic-bezier(.32,1,.23,1);
+  z-index:30;
+  max-height:85vh;
+  overflow-y:auto;
 }
-
 #sheet.show{bottom:0}
 
-.sheet-btn{
-padding:14px;
-background:#222;
-margin-bottom:10px;
-border-radius:10px;
+.sheet-handle{
+  width:36px;height:4px;
+  background:var(--surface3);
+  border-radius:2px;
+  margin:12px auto 16px;
+}
+.sheet-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;font-size:17px;
+  letter-spacing:.3px;
+  padding:0 16px 12px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;
+}
+.sheet-title span{color:var(--red)}
+
+.sheet-section{padding:12px 16px 4px;font-size:11px;color:var(--dim);font-weight:600;letter-spacing:.8px;text-transform:uppercase}
+
+.sheet-row{
+  display:flex;align-items:center;gap:12px;
+  padding:13px 16px;
+  cursor:pointer;
+  transition:background .15s;
+  border-bottom:1px solid var(--border);
+}
+.sheet-row:active{background:var(--surface2)}
+.sheet-row-icon{
+  width:36px;height:36px;
+  background:var(--surface3);
+  border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;
+  flex-shrink:0;
+}
+.sheet-row-label{font-size:14px;font-weight:500;flex:1}
+.sheet-row-value{font-size:12px;color:var(--dim)}
+
+/* Quality dots */
+.q-dots{display:flex;gap:4px}
+.q-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--surface3);
+}
+.q-dot.on{background:var(--red)}
+
+/* ── TOAST ───────────────────────────────── */
+.toast{
+  position:fixed;
+  bottom:calc(var(--nav-h) + 16px);
+  left:50%;transform:translateX(-50%) translateY(12px);
+  background:var(--surface2);
+  border:1px solid var(--border);
+  padding:9px 18px;border-radius:24px;
+  font-size:13px;font-weight:500;
+  opacity:0;transition:opacity .2s,transform .2s;
+  pointer-events:none;
+  white-space:nowrap;
+  z-index:40;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── SCORES TICKER ───────────────────────── */
+#scores-bar{
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:32px;
+  background:rgba(0,0,0,.75);
+  backdrop-filter:blur(8px);
+  overflow:hidden;
+  display:flex;align-items:center;
+  border-top:1px solid var(--border);
+  z-index:8;
+}
+.scores-inner{
+  display:flex;gap:0;
+  white-space:nowrap;
+  animation:ticker 30s linear infinite;
+}
+.scores-inner:hover{animation-play-state:paused}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+.score-item{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:0 20px;font-size:11px;font-weight:500;
+  border-right:1px solid var(--border);
+}
+.score-badge{
+  background:var(--red);
+  color:#fff;font-size:9px;font-weight:700;
+  padding:1px 4px;border-radius:3px;
+  letter-spacing:.4px;
 }
 
-/* LOADING */
-#loading{
-position:absolute;inset:0;
-display:flex;align-items:center;justify-content:center;
-background:#000;z-index:15;
+/* ── PWA INSTALL BANNER ──────────────────── */
+#install-banner{
+  position:absolute;
+  top:var(--top-h);left:12px;right:12px;
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:10px 14px;
+  display:flex;align-items:center;gap:10px;
+  z-index:9;
+  opacity:0;pointer-events:none;
+  transform:translateY(-8px);
+  transition:all .3s;
 }
-
+#install-banner.show{opacity:1;pointer-events:all;transform:translateY(0)}
+#install-banner .logo-s{width:32px;height:32px;font-size:16px;border-radius:7px}
+#install-banner p{flex:1;font-size:12px;line-height:1.3}
+#install-banner p b{font-weight:600}
+#install-banner p span{color:var(--dim)}
+#install-btn{
+  background:var(--red);
+  padding:6px 12px;border-radius:8px;
+  font-size:12px;font-weight:700;
+  cursor:pointer;white-space:nowrap;
+  flex-shrink:0;
+}
+#banner-close{
+  font-size:18px;color:var(--dim);cursor:pointer;
+  flex-shrink:0;line-height:1;
+}
 </style>
 </head>
-
 <body>
 
-<div id="player"></div>
+<!-- PLAYER -->
+<div id="player-wrap">
+  <div id="player"></div>
 
-<!-- TOP BAR -->
-<div id="topbar">
-<img id="thumb">
-<div id="title">Loading…</div>
-<div id="live">LIVE</div>
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <img id="thumb" alt="">
+    <div id="title-wrap">
+      <div id="title">Sports 803</div>
+      <div id="subtitle">Live Stream</div>
+    </div>
+    <div class="live-dot">LIVE</div>
+  </div>
+
+  <!-- STREAM SWITCHER -->
+  <div id="stream-bar"></div>
+
+  <!-- INSTALL BANNER -->
+  <div id="install-banner">
+    <div class="logo-s">S</div>
+    <p><b>Install Sports 803</b><br><span>Free live sports, no app store needed</span></p>
+    <div id="install-btn" onclick="installPWA()">Install</div>
+    <div id="banner-close" onclick="closeBanner()">×</div>
+  </div>
+
+  <!-- TAP ZONE -->
+  <div id="tap-zone" onclick="toggleControls()"></div>
+
+  <!-- CENTER CONTROLS -->
+  <div id="center-controls">
+    <div class="ctrl-btn" onclick="prevStream()">⏮</div>
+    <div class="ctrl-btn main" id="play-pause-btn" onclick="togglePlay()">⏸</div>
+    <div class="ctrl-btn" onclick="nextStream()">⏭</div>
+  </div>
+
+  <!-- SCORES TICKER -->
+  <div id="scores-bar">
+    <div class="scores-inner" id="scores-inner">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div id="loading">
+    <div class="logo-badge">
+      <div class="logo-s">S</div>
+      <div class="logo-text">SPORTS <span>803</span></div>
+    </div>
+    <div class="spinner"></div>
+    <p id="loading-text">Connecting to stream…</p>
+  </div>
 </div>
 
-<!-- CONTROLS -->
-<div id="controls">
-<div class="btn" onclick="nextStream()">Switch</div>
-<div class="btn" onclick="refresh()">Refresh</div>
-<div class="btn" onclick="openSheet()">Settings</div>
-<div class="btn" onclick="cast()">Cast</div>
-<div class="btn" onclick="airplay()">AirPlay</div>
-<div class="btn" onclick="fullscreen()">Fullscreen</div>
+<!-- BOTTOM NAV -->
+<div id="bottom-nav">
+  <div class="nav-item active" onclick="navClick('home')">
+    <div class="nav-icon">🏠</div>Home
+  </div>
+  <div class="nav-item" id="nav-live" onclick="navClick('live')">
+    <div class="nav-icon">📡</div>Live
+  </div>
+  <div class="nav-item" onclick="navClick('sports')">
+    <div class="nav-icon">⚽</div>Sports
+  </div>
+  <div class="nav-item" onclick="openSheet()">
+    <div class="nav-icon">⚙️</div>Settings
+  </div>
+  <div class="nav-item" onclick="navClick('you')">
+    <div class="nav-icon">👤</div>You
+  </div>
 </div>
 
-<!-- SETTINGS -->
+<!-- OVERLAY -->
+<div id="overlay" onclick="closeSheet()"></div>
+
+<!-- SETTINGS SHEET -->
 <div id="sheet">
-<div class="sheet-btn" onclick="nextStream()">Switch Stream</div>
-<div class="sheet-btn" onclick="refresh()">Refresh</div>
-<div class="sheet-btn" onclick="cast()">Chromecast</div>
-<div class="sheet-btn" onclick="airplay()">AirPlay</div>
-<div class="sheet-btn" onclick="fullscreen()">Fullscreen</div>
-<div class="sheet-btn" onclick="closeSheet()">Close</div>
+  <div class="sheet-handle"></div>
+  <div class="sheet-title"><span>⚙</span> Player Settings</div>
+
+  <div class="sheet-section">Stream</div>
+  <div class="sheet-row" onclick="nextStream();closeSheet()">
+    <div class="sheet-row-icon">🔄</div>
+    <div class="sheet-row-label">Switch Stream</div>
+    <div class="sheet-row-value" id="stream-counter">1/1</div>
+  </div>
+  <div class="sheet-row" onclick="refresh();closeSheet()">
+    <div class="sheet-row-icon">↺</div>
+    <div class="sheet-row-label">Refresh Stream</div>
+  </div>
+
+  <div class="sheet-section">Output</div>
+  <div class="sheet-row" onclick="cast();closeSheet()">
+    <div class="sheet-row-icon">📺</div>
+    <div class="sheet-row-label">Cast to TV</div>
+    <div class="sheet-row-value">Chromecast</div>
+  </div>
+  <div class="sheet-row" onclick="airplay();closeSheet()">
+    <div class="sheet-row-icon">📱</div>
+    <div class="sheet-row-label">AirPlay</div>
+    <div class="sheet-row-value">Apple</div>
+  </div>
+  <div class="sheet-row" onclick="fullscreen();closeSheet()">
+    <div class="sheet-row-icon">⛶</div>
+    <div class="sheet-row-label">Fullscreen</div>
+  </div>
+
+  <div class="sheet-section">More</div>
+  <div class="sheet-row" onclick="window.open('https://sports803livestream.blogspot.com/','_blank');closeSheet()">
+    <div class="sheet-row-icon">🌐</div>
+    <div class="sheet-row-label">Open Sports 803</div>
+    <div class="sheet-row-value">↗</div>
+  </div>
+  <div class="sheet-row" onclick="window.open('https://whatsapp.com/channel/0029VaDEAX4BPzjaAKrPKD3k','_blank');closeSheet()">
+    <div class="sheet-row-icon">🔔</div>
+    <div class="sheet-row-label">Notifications</div>
+    <div class="sheet-row-value">WhatsApp</div>
+  </div>
+  <div class="sheet-row" onclick="closeSheet()">
+    <div class="sheet-row-icon">✕</div>
+    <div class="sheet-row-label">Close</div>
+  </div>
 </div>
 
-<div id="loading">Loading stream...</div>
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
 <script>
+/* ── CONFIG ─────────────────────────────── */
+const params   = new URLSearchParams(location.search);
+let streams    = params.getAll("mora");
+let index      = 0;
+let jwPlayer   = null;
+let isPlaying  = true;
+let ctrlTimer  = null;
+let deferredInstall = null;
 
-/* STREAMS */
-let streams=new URLSearchParams(location.search).getAll("mora");
-let index=0;
-let player;
+/* ── SCORES (demo — replace with real API) ── */
+const DEMO_SCORES = [
+  {home:'Man City',away:'Arsenal',score:'2 – 1',live:true},
+  {home:'Real Madrid',away:'Barcelona',score:'1 – 1',live:true},
+  {home:'PSG',away:'Lyon',score:'3 – 0',live:false},
+  {home:'Juventus',away:'Inter',score:'0 – 0',live:true},
+  {home:'Bayern',away:'Dortmund',score:'2 – 2',live:false},
+  {home:'Liverpool',away:'Chelsea',score:'1 – 0',live:true},
+];
 
-/* INIT */
-init();
-
-function init(){
-fetchMeta(); // 🔥 auto title + thumbnail
-if(!streams.length){
-document.getElementById("loading").innerText="No stream";
-return;
+function buildScores(){
+  const inner = document.getElementById('scores-inner');
+  const items = [...DEMO_SCORES,...DEMO_SCORES]; // duplicate for seamless loop
+  inner.innerHTML = items.map(s=>`
+    <div class="score-item">
+      ${s.live?'<span class="score-badge">LIVE</span>':''}
+      ${s.home} <b>${s.score}</b> ${s.away}
+    </div>`).join('');
 }
-play(streams[index]);
+
+/* ── INIT ────────────────────────────────── */
+buildScores();
+fetchMeta();
+buildStreamBar();
+updateStreamCounter();
+
+if(streams.length){
+  play(streams[index]);
+}else{
+  document.getElementById('loading-text').textContent='No stream URL provided';
+  setTimeout(()=>{document.getElementById('loading').style.display='none'},2000);
 }
 
-/* PLAYER */
+// Show install banner after 4s
+setTimeout(()=>{
+  if(!window.matchMedia('(display-mode: standalone)').matches){
+    document.getElementById('install-banner').classList.add('show');
+  }
+},4000);
+
+/* ── PLAYER ──────────────────────────────── */
 function play(url){
-document.getElementById("loading").style.display="flex";
+  document.getElementById('loading').style.display='flex';
+  document.getElementById('loading-text').textContent='Connecting to stream…';
 
-player=jwplayer("player").setup({
-file:url,
-autostart:true,
-width:"100%",
-height:"100%"
-});
+  if(jwPlayer) jwPlayer.remove();
 
-player.on("ready",()=>{
-document.getElementById("loading").style.display="none";
-});
+  jwPlayer = jwplayer('player').setup({
+    file: url,
+    autostart: true,
+    mute: false,
+    width: '100%',
+    height: '100%',
+    stretching: 'uniform',
+    skin:{name:'netflix'},
+    displaytitle: false,
+    displaydescription: false,
+    controls: false,  // we use custom controls
+  });
 
-player.on("error",()=>nextStream());
+  jwPlayer.on('ready',()=>{
+    document.getElementById('loading').style.display='none';
+    isPlaying = true;
+    updatePlayBtn();
+  });
+
+  jwPlayer.on('play',()=>{isPlaying=true;updatePlayBtn()});
+  jwPlayer.on('pause',()=>{isPlaying=false;updatePlayBtn()});
+  jwPlayer.on('error',()=>{
+    document.getElementById('loading-text').textContent='Stream error – trying next…';
+    setTimeout(nextStream,1500);
+  });
 }
 
-/* STREAM CONTROL */
+/* ── STREAM CONTROL ──────────────────────── */
+function buildStreamBar(){
+  const bar = document.getElementById('stream-bar');
+  if(streams.length<=1){bar.style.display='none';return;}
+  bar.innerHTML = streams.map((s,i)=>`
+    <div class="stream-pill ${i===index?'active':''}" onclick="switchTo(${i})">
+      Stream ${i+1}
+    </div>`).join('');
+}
+
+function switchTo(i){
+  index=i;
+  play(streams[index]);
+  buildStreamBar();
+  updateStreamCounter();
+  toast(`Stream ${i+1} of ${streams.length}`);
+}
+
 function nextStream(){
-index=(index+1)%streams.length;
-play(streams[index]);
-toast("Switched stream");
+  index=(index+1)%Math.max(streams.length,1);
+  play(streams[index]);
+  buildStreamBar();
+  updateStreamCounter();
+  toast(`Stream ${index+1} of ${streams.length}`);
+}
+
+function prevStream(){
+  index=(index-1+Math.max(streams.length,1))%Math.max(streams.length,1);
+  play(streams[index]);
+  buildStreamBar();
+  updateStreamCounter();
 }
 
 function refresh(){
-play(streams[index]);
-toast("Refreshing...");
+  play(streams[index]);
+  toast('Refreshing…');
 }
 
-/* FULLSCREEN */
-function fullscreen(){
-let el=document.documentElement;
-if(!document.fullscreenElement) el.requestFullscreen();
-else document.exitFullscreen();
+function updateStreamCounter(){
+  document.getElementById('stream-counter').textContent=
+    `${index+1}/${streams.length||1}`;
 }
 
-/* 🔥 AUTO META FETCH (Blogger / OG tags) */
+/* ── PLAYBACK ────────────────────────────── */
+function togglePlay(){
+  if(!jwPlayer) return;
+  if(isPlaying) jwPlayer.pause();
+  else jwPlayer.play();
+}
+
+function updatePlayBtn(){
+  document.getElementById('play-pause-btn').textContent=isPlaying?'⏸':'▶';
+}
+
+/* ── TAP / CONTROLS ──────────────────────── */
+function toggleControls(){
+  const cc=document.getElementById('center-controls');
+  const tb=document.getElementById('topbar');
+  const sb=document.getElementById('stream-bar');
+  const show=!cc.classList.contains('show');
+  cc.classList.toggle('show',show);
+  tb.classList.toggle('hide',!show);
+  sb.classList.toggle('hide',!show);
+  clearTimeout(ctrlTimer);
+  if(show) ctrlTimer=setTimeout(()=>{
+    cc.classList.remove('show');
+    tb.classList.add('hide');
+    sb.classList.add('hide');
+  },3500);
+}
+
+/* ── META (Blogger parent) ───────────────── */
 function fetchMeta(){
-try{
-let parentDoc=window.parent.document;
-
-// title
-let title=
-parentDoc.querySelector("meta[property='og:title']")?.content ||
-parentDoc.title ||
-"Sports 803";
-
-document.getElementById("title").innerText=title;
-
-// image
-let img=
-parentDoc.querySelector("meta[property='og:image']")?.content ||
-parentDoc.querySelector("img")?.src ||
-"";
-
-if(img) document.getElementById("thumb").src=img;
-
-}catch(e){
-document.getElementById("title").innerText="Sports 803";
-}
+  try{
+    const pd=window.parent.document;
+    const title=
+      pd.querySelector("meta[property='og:title']")?.content||
+      pd.querySelector("h1.post-title")?.textContent||
+      pd.title||'Sports 803';
+    const img=
+      pd.querySelector("meta[property='og:image']")?.content||
+      pd.querySelector('.post-body img')?.src||'';
+    document.getElementById('title').textContent=title;
+    document.getElementById('subtitle').textContent='Sports 803 • Live';
+    if(img) document.getElementById('thumb').src=img;
+  }catch(e){
+    document.getElementById('title').textContent='Sports 803';
+  }
 }
 
-/* 📡 CHROMECAST */
-let castSession=null;
+/* ── FULLSCREEN ──────────────────────────── */
+function fullscreen(){
+  const el=document.documentElement;
+  if(!document.fullscreenElement) el.requestFullscreen?.();
+  else document.exitFullscreen?.();
+}
 
+/* ── CAST ────────────────────────────────── */
 function cast(){
-if(!window.cast || !cast.framework){
-toast("Cast not supported");
-return;
+  if(!window.cast||!cast.framework){toast('Cast not available');return;}
+  cast.framework.CastContext.getInstance().requestSession().then(()=>{
+    const session=cast.framework.CastContext.getInstance().getCurrentSession();
+    const media=new chrome.cast.media.MediaInfo(streams[index],'application/x-mpegURL');
+    session.loadMedia(new chrome.cast.media.LoadRequest(media));
+    toast('Casting to TV…');
+  }).catch(()=>toast('Cast cancelled'));
 }
 
-const context=cast.framework.CastContext.getInstance();
-context.requestSession().then(()=>{
-castSession=context.getCurrentSession();
-
-const mediaInfo=new chrome.cast.media.MediaInfo(streams[index],'video/mp4');
-const request=new chrome.cast.media.LoadRequest(mediaInfo);
-
-castSession.loadMedia(request);
-toast("Casting...");
-});
-}
-
-/* 🍎 AIRPLAY */
+/* ── AIRPLAY ─────────────────────────────── */
 function airplay(){
-let video=document.querySelector("video");
-
-if(video && video.webkitShowPlaybackTargetPicker){
-video.webkitShowPlaybackTargetPicker();
-}else{
-toast("AirPlay not supported");
-}
+  const v=document.querySelector('video');
+  if(v?.webkitShowPlaybackTargetPicker) v.webkitShowPlaybackTargetPicker();
+  else toast('AirPlay not supported');
 }
 
-/* UI */
-function openSheet(){document.getElementById("sheet").classList.add("show")}
-function closeSheet(){document.getElementById("sheet").classList.remove("show")}
+/* ── SHEET ───────────────────────────────── */
+function openSheet(){
+  document.getElementById('sheet').classList.add('show');
+  document.getElementById('overlay').classList.add('show');
+}
+function closeSheet(){
+  document.getElementById('sheet').classList.remove('show');
+  document.getElementById('overlay').classList.remove('show');
+}
 
-/* TOAST */
+/* ── BOTTOM NAV ──────────────────────────── */
+function navClick(tab){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const urls={
+    home:'https://sports803livestream.blogspot.com/',
+    live:'https://sports803livestream.blogspot.com/search/label/Live%20TV',
+    sports:'https://sports803livestream.blogspot.com/search/label/Sport',
+    you:'https://sports803livestream.blogspot.com/p/saved.html',
+  };
+  if(urls[tab]) window.open(urls[tab],'_blank');
+}
+
+/* ── PWA INSTALL ─────────────────────────── */
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredInstall=e;
+  document.getElementById('install-banner').classList.add('show');
+});
+
+function installPWA(){
+  if(deferredInstall){
+    deferredInstall.prompt();
+    deferredInstall.userChoice.then(()=>{closeBanner()});
+  }else{
+    toast('Open in browser to install');
+  }
+}
+
+function closeBanner(){
+  document.getElementById('install-banner').classList.remove('show');
+}
+
+/* ── TOAST ───────────────────────────────── */
+let toastTimer;
 function toast(msg){
-let t=document.createElement("div");
-t.innerText=msg;
-t.style.position="absolute";
-t.style.bottom="80px";
-t.style.left="50%";
-t.style.transform="translateX(-50%)";
-t.style.background="#111";
-t.style.padding="8px 16px";
-t.style.borderRadius="20px";
-document.body.appendChild(t);
-setTimeout(()=>t.remove(),2000);
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
 }
-
 </script>
-
 </body>
 </html>
