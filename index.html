@@ -3,70 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Janzi Band – TV Advertisement</title>
+<title>Janzi Band – Advertisement</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Cinzel+Decorative:wght@700&family=Raleway:wght@300;400;600&display=swap');
-
-  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
     --gold: #D4A017;
     --deep-red: #8B1A1A;
-    --kente-orange: #E8651A;
-    --earth: #3B1F0A;
     --cream: #F5E6C8;
-    --green: #2D5A27;
+    --earth: #3B1F0A;
     --slide-duration: 10s;
   }
 
   html, body {
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
+    width: 100vw; height: 100vh;
+    margin: 0; padding: 0; overflow: hidden;
     background: #000;
     font-family: 'Raleway', sans-serif;
   }
 
-  /* Kente Border */
-  .kente-border {
-    position: fixed; 
-    inset: 0; 
-    z-index: 100;
-    pointer-events: none;
-    border: 18px solid transparent; /* slightly thinner for laptop */
-    border-image: repeating-linear-gradient(
-      90deg,
-      var(--gold) 0 18px,
-      var(--deep-red) 18px 36px,
-      var(--kente-orange) 36px 54px,
-      var(--green) 54px 72px,
-      var(--gold) 72px 90px
-    ) 18;
-  }
-  .kente-border::after {
-    content: '';
-    position: absolute; 
-    inset: 0;
-    border: 5px solid rgba(212,160,23,.35);
-  }
-
-  /* Slideshow */
-  .slideshow {
-    position: relative;
-    width: 100%;
-    height: 100%;
-  }
+  .slideshow { position: relative; width: 100%; height: 100%; }
 
   .slide {
-    position: absolute; 
-    inset: 0;
+    position: absolute; inset: 0;
     opacity: 0;
     animation: slideLife var(--slide-duration) linear infinite;
-    display: flex; 
-    align-items: center; 
-    justify-content: flex-end;
+    display: flex;
+    align-items: center;
   }
 
+  /* Stagger delays */
   .slide:nth-child(1)  { animation-delay: 0s; }
   .slide:nth-child(2)  { animation-delay: calc(1 * var(--slide-duration)); }
   .slide:nth-child(3)  { animation-delay: calc(2 * var(--slide-duration)); }
@@ -77,284 +43,180 @@
   .slide:nth-child(8)  { animation-delay: calc(7 * var(--slide-duration)); }
   .slide:nth-child(9)  { animation-delay: calc(8 * var(--slide-duration)); }
   .slide:nth-child(10){ animation-delay: calc(9 * var(--slide-duration)); }
-  .slide:nth-child(11){ animation-delay: calc(10* var(--slide-duration)); }
-  .slide:nth-child(12){ animation-delay: calc(11* var(--slide-duration)); }
-  .slide:nth-child(13){ animation-delay: calc(12* var(--slide-duration)); }
-  .slide:nth-child(14){ animation-delay: calc(13* var(--slide-duration)); }
-  .slide:nth-child(15){ animation-delay: calc(14* var(--slide-duration)); }
-  .slide:nth-child(16){ animation-delay: calc(15* var(--slide-duration)); }
-  .slide:nth-child(17){ animation-delay: calc(16* var(--slide-duration)); }
-  .slide:nth-child(18){ animation-delay: calc(17* var(--slide-duration)); }
-  .slide:nth-child(19){ animation-delay: calc(18* var(--slide-duration)); }
-  .slide:nth-child(20){ animation-delay: calc(19* var(--slide-duration)); }
+  /* ... continue up to 20 as needed */
 
   @keyframes slideLife {
-    0%   { opacity: 0; transform: scale(1.05); }
-    3%   { opacity: 1; transform: scale(1.02); }
-    88%  { opacity: 1; transform: scale(1.00); }
-    97%  { opacity: 0; transform: scale(0.98); }
+    0%   { opacity: 0; }
+    3%   { opacity: 1; }
+    88%  { opacity: 1; }
+    97%  { opacity: 0; }
     100% { opacity: 0; }
   }
 
-  /* Background Image - Optimized for Laptop */
-  .slide-bg {
-    position: absolute; 
-    inset: 0;
+  /* Left Image Panel */
+  .left-image {
+    width: 48%;
+    height: 100%;
     background-size: cover;
     background-position: center;
-    filter: brightness(0.65) saturate(1.15); /* brighter for laptop screens */
-    animation: subtleZoom 12s ease-in-out infinite alternate;
+    position: relative;
+    animation: subtleZoom 14s ease-in-out infinite alternate;
   }
-  .slide-bg::after {
+  .left-image::after {
     content: '';
-    position: absolute; 
-    inset: 0;
-    background: linear-gradient(
-      120deg,
-      rgba(139,26,26,.50) 0%,
-      rgba(0,0,0,.12) 50%,
-      rgba(45,90,39,.40) 100%
-    );
+    position: absolute; inset: 0;
+    background: linear-gradient(to right, rgba(59,31,10,0.65), rgba(139,26,26,0.35));
   }
 
   @keyframes subtleZoom {
-    from { transform: scale(1.03); }
-    to   { transform: scale(1.08); }
+    from { transform: scale(1.02); }
+    to   { transform: scale(1.09); }
   }
 
-  /* Adinkra Decor */
-  .adinkra {
-    position: absolute;
-    font-size: 160px;
-    color: rgba(212,160,23,.13);
-    z-index: 1;
-    user-select: none;
-    animation: rotSpin 45s linear infinite;
-  }
-  .adinkra-tl { top: 50px; left: 50px; }
-  .adinkra-br { bottom: 50px; right: 50px; font-size: 120px; animation-direction: reverse; }
-
-  @keyframes rotSpin { to { transform: rotate(360deg); } }
-
-  /* Content Panel - Better Centered for Laptops */
+  /* Right Content Panel */
   .content-panel {
-    position: relative; 
-    z-index: 10;
-    width: 580px;                 /* narrower for better laptop balance */
-    max-width: 92%;
-    margin-right: 80px;
+    width: 520px;
+    max-width: 90%;
+    margin-left: auto;
+    margin-right: 90px;
     padding: 48px 52px;
-    background: rgba(10,4,2,.78);
+    background: rgba(10,4,2,0.82);
     border-left: 6px solid var(--gold);
     backdrop-filter: blur(10px);
+    z-index: 10;
     align-self: center;
-    border-radius: 4px;
-  }
-  .content-panel::before {
-    content: '';
-    position: absolute; 
-    inset: -6px;
-    border: 1.5px solid rgba(212,160,23,.30);
-    pointer-events: none;
-    border-radius: 4px;
   }
 
   .brand-tag {
     font-family: 'Cinzel Decorative', serif;
-    font-size: 13px;
-    letter-spacing: 5px;
-    color: var(--gold);
-    text-transform: uppercase;
-    margin-bottom: 18px;
+    font-size: 13px; letter-spacing: 5px;
+    color: var(--gold); text-transform: uppercase;
+    margin-bottom: 16px;
   }
 
   .slide-headline {
     font-family: 'Playfair Display', serif;
-    font-size: 39px;
-    font-weight: 700;
-    line-height: 1.18;
-    color: var(--cream);
-    margin-bottom: 20px;
+    font-size: 39px; font-weight: 700; line-height: 1.15;
+    color: var(--cream); margin-bottom: 20px;
   }
-  .slide-headline em {
-    font-style: italic;
-    color: var(--gold);
-  }
+  .slide-headline em { color: var(--gold); font-style: italic; }
 
   .slide-body {
-    font-size: 16px;
-    line-height: 1.65;
-    color: rgba(245,230,200,.88);
+    font-size: 16px; line-height: 1.65;
+    color: rgba(245,230,200,0.88);
     margin-bottom: 30px;
   }
 
   .cta-row {
-    display: flex; 
-    flex-wrap: wrap; 
-    gap: 12px;
-    margin-bottom: 28px;
+    display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 28px;
   }
   .cta-chip {
     padding: 10px 22px;
     border: 1.6px solid var(--gold);
     color: var(--gold);
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
+    font-size: 13px; font-weight: 600; letter-spacing: 1.5px;
     text-transform: uppercase;
-    background: transparent;
   }
   .cta-chip.filled {
-    background: var(--gold);
-    color: var(--earth);
+    background: var(--gold); color: var(--earth);
   }
 
-  .contact-strip {
-    border-top: 1px solid rgba(212,160,23,.35);
-    padding-top: 22px;
-    display: grid;
-    gap: 9px;
-  }
-  .contact-item {
-    display: flex; 
-    align-items: center; 
-    gap: 11px;
-    font-size: 14.5px;
-    color: var(--cream);
-  }
-  .contact-item .icon {
-    width: 28px; 
-    height: 28px;
-    background: var(--gold);
-    border-radius: 50%;
-    display: flex; 
-    align-items: center; 
-    justify-content: center;
-    font-size: 13px;
-    color: var(--earth);
-    flex-shrink: 0;
-  }
-
-  /* Top Bar */
+  /* Top Bar & Ticker (same as previous version) */
   .top-bar {
-    position: fixed; 
-    top: 20px; 
-    left: 20px; 
-    right: 20px;
-    z-index: 99;
-    display: flex; 
-    align-items: center; 
-    justify-content: space-between;
-    height: 58px;
-    padding: 0 30px;
-    background: rgba(10,4,2,.82);
-    border-bottom: 2px solid var(--gold);
+    position: fixed; top: 20px; left: 20px; right: 20px; z-index: 99;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 58px; padding: 0 30px;
+    background: rgba(10,4,2,.82); border-bottom: 2px solid var(--gold);
     backdrop-filter: blur(8px);
   }
   .logo-text { font-size: 26px; letter-spacing: 4px; color: var(--gold); }
-  .logo-sub  { font-size: 10.5px; letter-spacing: 4.5px; color: var(--cream); opacity: .7; }
+  .logo-sub  { font-size: 10.5px; letter-spacing: 4.5px; color: var(--cream); opacity: 0.75; }
 
-  .live-dot {
-    display: flex; 
-    align-items: center; 
-    gap: 7px;
-    font-size: 10.5px; 
-    letter-spacing: 2.5px;
-    color: var(--cream); 
-    opacity: .8;
-    text-transform: uppercase;
-  }
-  .live-dot span {
-    width: 9px; height: 9px;
-    background: #e74c3c;
-    border-radius: 50%;
-    animation: pulse 1.4s ease-in-out infinite;
-  }
-  @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .45; transform: scale(1.5); } }
-
-  /* Bottom Ticker */
   .ticker-bar {
-    position: fixed; 
-    bottom: 20px; 
-    left: 20px; 
-    right: 20px;
-    z-index: 99;
-    background: rgba(212,160,23,.94);
-    height: 40px;
-    overflow: hidden;
-    display: flex; 
-    align-items: center;
+    position: fixed; bottom: 20px; left: 20px; right: 20px; z-index: 99;
+    background: rgba(212,160,23,.94); height: 40px;
+    display: flex; align-items: center; overflow: hidden;
   }
   .ticker-label {
-    background: var(--deep-red);
-    color: var(--cream);
-    font-family: 'Cinzel Decorative', serif;
-    font-size: 10.5px;
-    letter-spacing: 3px;
-    padding: 0 20px;
-    height: 100%;
-    display: flex; 
-    align-items: center;
+    background: var(--deep-red); color: var(--cream);
+    font-family: 'Cinzel Decorative', serif; font-size: 10.5px;
+    letter-spacing: 3px; padding: 0 20px; height: 100%; display: flex; align-items: center;
   }
   .ticker-text {
-    display: inline-block;
-    white-space: nowrap;
-    animation: tickerScroll 26s linear infinite;
-    font-size: 14.5px;
-    font-weight: 600;
-    color: var(--earth);
-    letter-spacing: 1.8px;
-    padding-left: 30px;
+    white-space: nowrap; animation: tickerScroll 26s linear infinite;
+    font-size: 14.5px; font-weight: 600; color: var(--earth); letter-spacing: 1.8px;
   }
-  @keyframes tickerScroll {
-    from { transform: translateX(100%); }
-    to   { transform: translateX(-100%); }
-  }
+  @keyframes tickerScroll { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
 </style>
 </head>
 <body>
 
-<!-- Top Bar -->
 <div class="top-bar">
   <div>
     <div class="logo-text">JANZI</div>
     <div class="logo-sub">East African Music Experience</div>
   </div>
-  <div class="live-dot"><span></span> LIVE ADVERTISEMENT</div>
-  <div style="text-align:right;">
-    <div style="font-size:19px; font-weight:600; color:var(--gold);">📞 0773 033 240</div>
-    <div style="font-size:11.5px; color:var(--cream); opacity:0.8;">janzimusic.com</div>
-  </div>
+  <div style="font-size:19px; font-weight:600; color:#D4A017;">📞 0773 033 240</div>
 </div>
 
-<!-- Kente Border -->
-<div class="kente-border"></div>
-
-<!-- Slideshow -->
 <div class="slideshow">
 
-  <!-- Paste all your 20 slides here (same content as before) -->
-  <!-- Example for Slide 1: -->
+  <!-- SLIDE 1 - Group of Janzi instruments -->
   <div class="slide">
-    <div class="slide-bg" style="background-image:url('/mnt/user-data/uploads/IMG_8382.jpeg')"></div>
-    <div class="adinkra adinkra-tl">✦</div>
-    <div class="adinkra adinkra-br">❋</div>
+    <div class="left-image" style="background-image: url('https://your-image-host.com/ToW3K.jpg');"></div>
     <div class="content-panel">
-      <div class="brand-tag">Janzi Band · Uganda</div>
-      <div class="slide-headline">Where <em>Ancient Strings</em> Meet Modern Sound</div>
-      <div class="slide-body">Experience the revolutionary Janzi instrument — a masterpiece of East African craftsmanship, redefining music for the world stage.</div>
+      <div class="brand-tag">Janzi Instruments</div>
+      <div class="slide-headline">Handcrafted <em>East African Harps</em></div>
+      <div class="slide-body">Each Janzi is uniquely carved from premium woods — a fusion of tradition and modern innovation.</div>
       <div class="cta-row">
-        <div class="cta-chip filled">Learn Janzi</div>
-        <div class="cta-chip">Book an Event</div>
-      </div>
-      <div class="contact-strip">
-        <div class="contact-item"><div class="icon">📞</div>0773 033 240</div>
-        <div class="contact-item"><div class="icon">🌐</div><a href="https://janzimusic.com" target="_blank">janzimusic.com</a></div>
+        <div class="cta-chip filled">Buy a Janzi</div>
+        <div class="cta-chip">Learn to Play</div>
       </div>
     </div>
   </div>
 
-  <!-- Add the remaining 19 slides exactly as you had them before -->
+  <!-- SLIDE 2 - Ssewa Ssewa sitting with Janzi (orange background) -->
+  <div class="slide">
+    <div class="left-image" style="background-image: url('https://your-image-host.com/ZFEAR.jpg');"></div>
+    <div class="content-panel">
+      <div class="brand-tag">Ssewa Ssewa</div>
+      <div class="slide-headline">The <em>Master</em> of the Janzi</div>
+      <div class="slide-body">Deep connection. Pure soul. Experience the sound that is redefining East African music.</div>
+      <div class="cta-row">
+        <div class="cta-chip filled">Watch Performances</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3 - Colorful group portrait -->
+  <div class="slide">
+    <div class="left-image" style="background-image: url('https://your-image-host.com/xgrZ1.jpg');"></div>
+    <div class="content-panel">
+      <div class="brand-tag">Janzi Band</div>
+      <div class="slide-headline">Where <em>Culture</em> Comes Alive</div>
+      <div class="slide-body">Vibrant energy, rich heritage, and unforgettable live sound.</div>
+      <div class="cta-row">
+        <div class="cta-chip filled">Book the Band</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add more slides following the same pattern using your other uploaded images (IMG_xxxx, performance shots, DJ + Janzi, etc.) -->
+
+  <!-- Example for another slide (replace with your image ID) -->
+  <!--
+  <div class="slide">
+    <div class="left-image" style="background-image: url('https://your-image-host.com/VXZaw.jpg');"></div>
+    <div class="content-panel">
+      <div class="brand-tag">Fusion Sound</div>
+      <div class="slide-headline">Janzi + <em>Electronic Beats</em></div>
+      <div class="slide-body">Ancient strings meet modern DJ culture for a unique experience.</div>
+      <div class="cta-row">
+        <div class="cta-chip filled">Book Now</div>
+      </div>
+    </div>
+  </div>
+  -->
 
 </div>
 
@@ -363,13 +225,8 @@
   <div class="ticker-label">JANZI BAND</div>
   <div class="ticker-track">
     <div class="ticker-text">
-      🎵 Learn the Janzi — East Africa’s Revolutionary Harp • 
-      📞 Book Ssewa Ssewa: 0773 033 240 • 
-      🌐 janzimusic.com • 
-      📸 @janzi_band • 
-      📺 YouTube: JanziBand1 • 
-      Weddings • Festivals • Corporate • Private Sessions • 
-      ✨ Ancient Strings Meet Modern Sound
+      🎵 Learn the Janzi Instrument • 📞 0773 033 240 • 🌐 janzimusic.com • 
+      📸 @janzi_band • Weddings • Festivals • Corporate Events • Private Sessions
     </div>
   </div>
 </div>
