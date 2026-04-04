@@ -357,6 +357,21 @@ button:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
         </div>
       </div>
       <div class="card">
+        <div class="card-title">📡 Multi-Source Stream Aggregator
+          <span class="ct-right">
+            <button class="btn-green btn-xs" onclick="reloadComposeAgg()">🔄 Reload</button>
+            <span id="compose-agg-status" style="font-size:.62rem;color:var(--muted2);font-family:var(--mono)">—</span>
+          </span>
+        </div>
+        <div id="compose-agg-list" style="font-size:.72rem;color:var(--muted2);min-height:36px">
+          <span style="color:var(--muted2);font-size:.7rem">Open an event with "✍️ Gen" to auto-load streams, or click Reload.</span>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+          <button class="btn-blue btn-xs" onclick="insertAllAggStreams()">⬇ Insert All to Stream Links</button>
+          <button class="btn-ghost btn-xs" onclick="showPage('settings')">⚙ Configure</button>
+        </div>
+      </div>
+      <div class="card">
         <div class="card-title">🎥 Stream Links</div>
         <div class="form-group"><label>Player Base URL</label><input type="text" id="player-base" value="https://soulmap1.blogspot.com/p/media-player.html"></div>
         <div id="stream-list">
@@ -1893,6 +1908,83 @@ async function genAndFill(sid) {
   currentComposeEv = ev;
   updateSEO(); showPage('compose'); onTitleChange();
   toast('Content generated ✓','s');
+
+  // ── Populate compose stream rows from Multi-Source Aggregator ──
+  if (CFG.autoFetchStreams && ev.type === 'match') {
+    populateComposeStreams(ev);
+  }
+}
+
+async function populateComposeStreams(ev) {
+  try {
+    const sources = await getAllStreamSourcesForEvent(ev);
+    if (!sources.length) return;
+    const list = document.getElementById('stream-list');
+    list.innerHTML = '';
+    sources.forEach(s => {
+      const row = document.createElement('div'); row.className = 'stream-row';
+      row.innerHTML = `<input type="text" class="mora-input" value="${s.url}" oninput="updateIframeBox()"><button class="btn-ghost btn-sm" onclick="removeStream(this)">✕</button>`;
+      list.appendChild(row);
+    });
+    updateIframeBox();
+    // Update the aggregator section in compose if visible
+    const aggEl = document.getElementById('compose-agg-list');
+    if (aggEl) {
+      aggEl.innerHTML = sources.map(s =>
+        `<div class="stream-row"><input type="text" class="mora-input" value="${s.url}" readonly style="font-size:.7rem;color:var(--muted2);font-family:var(--mono)"><button class="btn-blue btn-xs" onclick="insertSourceToCompose('${s.url.replace(/'/g,"\\'")}')">Insert</button></div>`
+      ).join('');
+    }
+    toast(`${sources.length} stream source(s) loaded from aggregator ✓`, 's');
+  } catch(e) { console.warn('[ComposeStreams]', e.message); }
+}
+
+function insertSourceToCompose(url) {
+  const list = document.getElementById('stream-list');
+  const row = document.createElement('div'); row.className = 'stream-row';
+  row.innerHTML = `<input type="text" class="mora-input" value="${url}" oninput="updateIframeBox()"><button class="btn-ghost btn-sm" onclick="removeStream(this)">✕</button>`;
+  list.appendChild(row); updateIframeBox();
+  toast('Stream added to compose ✓','s');
+}
+
+async function reloadComposeAgg() {
+  const aggEl = document.getElementById('compose-agg-list');
+  const statusEl = document.getElementById('compose-agg-status');
+  if (!currentComposeEv) { toast('No event loaded — use ✍️ Gen from Events first','w'); return; }
+  if (!CFG.autoFetchStreams) { toast('Enable "Auto-fetch External Streams" in Settings first','w'); return; }
+  if (statusEl) statusEl.textContent = 'Loading…';
+  if (aggEl) aggEl.innerHTML = '<span class="spinner"></span> Fetching streams…';
+  try {
+    const sources = await getAllStreamSourcesForEvent(currentComposeEv);
+    if (statusEl) statusEl.textContent = `${sources.length} source(s)`;
+    if (!sources.length) {
+      if (aggEl) aggEl.innerHTML = '<span style="color:var(--muted2)">No streams found for this event.</span>';
+      return;
+    }
+    if (aggEl) {
+      aggEl.innerHTML = sources.map(s =>
+        `<div class="stream-row"><input type="text" class="mora-input" value="${s.url}" readonly style="font-size:.7rem;color:var(--muted2);font-family:var(--mono)"><button class="btn-blue btn-xs" onclick="insertSourceToCompose('${s.url.replace(/'/g,"\\'").replace(/"/g,'&quot;')}')">Insert</button></div>`
+      ).join('');
+    }
+    toast(`${sources.length} streams loaded ✓`, 's');
+  } catch(e) {
+    if (statusEl) statusEl.textContent = 'Error';
+    toast('Aggregator error: '+e.message, 'e');
+  }
+}
+
+async function insertAllAggStreams() {
+  if (!currentComposeEv) { toast('No event loaded','w'); return; }
+  if (!CFG.autoFetchStreams) { toast('Enable "Auto-fetch External Streams" in Settings first','w'); return; }
+  const sources = await getAllStreamSourcesForEvent(currentComposeEv);
+  if (!sources.length) { toast('No streams found','w'); return; }
+  const list = document.getElementById('stream-list');
+  sources.forEach(s => {
+    const row = document.createElement('div'); row.className = 'stream-row';
+    row.innerHTML = `<input type="text" class="mora-input" value="${s.url}" oninput="updateIframeBox()"><button class="btn-ghost btn-sm" onclick="removeStream(this)">✕</button>`;
+    list.appendChild(row);
+  });
+  updateIframeBox();
+  toast(`${sources.length} stream(s) added ✓`, 's');
 }
 
 async function genThumbForEv(sid) {
@@ -2360,11 +2452,15 @@ function toast(msg,type='i'){
 // ═══════════════════════════════════════════
 
 // ── Team name normalization ──
+// Only strips genuine organisational tags (FC, AFC, SC, etc.)
+// Never strips city names or descriptive words (city, united, hotspur, real, etc.)
+// — those are essential parts of team identity and their removal causes key collisions.
 function normTeam(name) {
   return (name||'')
     .normalize('NFD').replace(/[\u0300-\u036f]/g,'')  // strip accents
     .toLowerCase()
-    .replace(/\b(fc|cf|sc|ac|as|rc|cd|sd|vv|sv|bv|dk|sk|fk|uk|us|ca|ss|sp|if|is|afc|rcd|bsc|rsca|rgb|vfb|vfl|1\.|1\.fc|atletico|atletico|real|manchester|sporting|calcio|city|united|town|county|hotspur|wanderers|athletic|dynamo|dynamos|atletico|deportivo)\b/g,'')
+    // Strip only genuine org-tag prefixes/suffixes – NOT descriptor words
+    .replace(/\b(fc|afc|rfc|sc|cf|ac|as|bsc|rcd|rsca|rgb|vfb|vfl|1\.fc)\b/g,'')
     .replace(/[^a-z0-9\s]/g,'')
     .replace(/\s+/g,' ')
     .trim();
