@@ -844,7 +844,194 @@ let tbGenCount = 0, composeGenCount = 0;
 let externalStreamsMap = {};   // normalizedKey → [{url, type:'embed'}]
 let ddkanquCache = {};         // normalizedKey → url|null
 let ddkanquMappings = {};      // parsed from CFG.ddkanquMappingsRaw
+let ddkanquHomeMap = {};       // pairKey(english) → {zhibo, hls, zhHome, zhAway}
 const SK_DDKC = 's803u_ddkc'; // localStorage key for ddkanqu cache
+
+// ═══════════════════════════════════════════
+// CHINESE → ENGLISH TEAM DICTIONARY
+// Used to translate DDKanqu homepage Chinese team names → English for matching
+// ═══════════════════════════════════════════
+const ZH_EN_TEAMS = {
+  // ── European Football ──
+  '马德里竞技':'Atletico Madrid','巴塞罗那':'Barcelona','皇家马德里':'Real Madrid',
+  '南安普顿':'Southampton','阿森纳':'Arsenal','切尔西':'Chelsea',
+  '曼城':'Manchester City','曼联':'Manchester United','利物浦':'Liverpool',
+  '热刺':'Tottenham Hotspur','纽卡斯尔':'Newcastle United','阿斯顿维拉':'Aston Villa',
+  '西汉姆联':'West Ham United','利兹联':'Leeds United','埃弗顿':'Everton',
+  '富勒姆':'Fulham','布莱顿':'Brighton','水晶宫':'Crystal Palace',
+  '伯恩利':'Burnley','沃尔弗汉普顿':'Wolverhampton','莱斯特城':'Leicester City',
+  '里尔':'Lille','朗斯':'Lens','巴黎圣日耳曼':'PSG','马赛':'Marseille',
+  '里昂':'Lyon','摩纳哥':'Monaco','尼斯':'Nice','雷恩':'Rennes',
+  '昂热':'Angers','南特':'Nantes','梅斯':'Metz','洛里昂':'Lorient',
+  '勒阿弗尔':'Le Havre','欧塞尔':'Auxerre','巴黎FC':'Paris FC',
+  '斯特拉斯堡':'Strasbourg','蒙彼利埃':'Montpellier','图卢兹':'Toulouse',
+  '拉齐奥':'Lazio','罗马':'Roma','国际米兰':'Internazionale','米兰':'AC Milan',
+  '尤文图斯':'Juventus','那不勒斯':'Napoli','亚特兰大':'Atalanta',
+  '佛罗伦萨':'Fiorentina','博洛尼亚':'Bologna','帕尔马':'Parma',
+  '克雷莫内塞':'Cremonese','都灵':'Torino','维罗纳':'Verona',
+  '比萨':'Pisa','恩波利':'Empoli','热那亚':'Genoa','科莫':'Como',
+  '萨索洛':'Sassuolo','贝内文托':'Benevento','莱切':'Lecce','卡利亚里':'Cagliari',
+  '巴塞尔':'Basel','年轻人':'Young Boys','卢塞恩':'Luzern','苏黎世':'FC Zurich',
+  '圣吉罗斯':'Union Saint-Gilloise','圣图尔登':'Saint-Truiden','根特':'Gent',
+  '布鲁日':'Club Brugge','安德莱赫特':'Anderlecht','标准列日':'Standard Liege',
+  '阿贾克斯':'Ajax','特温特':'Twente','费耶诺德':'Feyenoord','阿尔克马尔':'AZ',
+  '海伦芬':'Heerenveen','赫拉克勒斯':'Heracles','福伦丹':'Volendam',
+  '布雷达':'NAC Breda','鹿特丹斯巴达':'Sparta Rotterdam',
+  'SBV精英':'Excelsior','奈梅亨':'NEC Nijmegen','前进之鹰':'Go Ahead Eagles',
+  '兹沃勒':'PEC Zwolle','乌德勒支':'FC Utrecht',
+  '波尔图':'Porto','本菲卡':'Benfica','体育里斯本':'Sporting CP',
+  '法马利康':'Famalicao','布拉加':'SC Braga',
+  '赫塔费':'Getafe','毕尔巴鄂竞技':'Athletic Club','瓦伦西亚':'Valencia',
+  '塞尔塔':'Celta Vigo','塞维利亚':'Sevilla','贝蒂斯':'Real Betis',
+  '维拉雷尔':'Villarreal','马洛卡':'Real Mallorca','奥萨苏纳':'Osasuna',
+  '皇家社会':'Real Sociedad','阿拉维斯':'Deportivo Alaves','瓦利亚多利德':'Valladolid',
+  '莱加内斯':'Leganes','皇家奥维耶多':'Real Oviedo',
+  '拜仁慕尼黑':'Bayern Munich','多特蒙德':'Borussia Dortmund',
+  '莱比锡':'RB Leipzig','柏林联合':'Union Berlin','圣保利':'St. Pauli',
+  '法兰克福':'Eintracht Frankfurt','科隆':'FC Cologne','弗莱堡':'Freiburg',
+  '门兴格拉德巴赫':'Borussia Monchengladbach','霍芬海姆':'Hoffenheim',
+  '沃尔夫斯堡':'Wolfsburg','奥格斯堡':'Augsburg','斯图加特':'Stuttgart',
+  '柏林赫塔':'Hertha Berlin','波鸿':'Bochum','凯泽斯劳滕':'Kaiserslautern',
+  '沙尔克04':'Schalke 04','卡尔斯鲁厄':'Karlsruher SC',
+  '汉堡':'Hamburger SV','不来梅':'Werder Bremen',
+  '利雅得新月':'Al Hilal','利雅得胜利':'Al Nassr','阿尔伊蒂哈德':'Al Ittihad',
+  '布赖代合作':'Al Taawun','阿科多':'Al Qadsiah','哈萨征服':'Al Feiha',
+  '利雅得体育':'Al Riyadh','利雅得青年人':'Al Shabab','达曼协作':'Al Ettifaq',
+  '胡拜尔库迪西亚':'Al Qadisiyah',
+  // ── NBA / Basketball ──
+  '马刺':'San Antonio Spurs','掘金':'Denver Nuggets','热火':'Miami Heat',
+  '奇才':'Washington Wizards','活塞':'Detroit Pistons','76人':'Philadelphia 76ers',
+  '湖人':'Los Angeles Lakers','勇士':'Golden State Warriors','快船':'LA Clippers',
+  '火箭':'Houston Rockets','独行侠':'Dallas Mavericks','雷霆':'Oklahoma City Thunder',
+  '爵士':'Utah Jazz','太阳':'Phoenix Suns','开拓者':'Portland Trail Blazers',
+  '骑士':'Cleveland Cavaliers','公牛':'Chicago Bulls','步行者':'Indiana Pacers',
+  '猛龙':'Toronto Raptors','凯尔特人':'Boston Celtics','76人':'Philadelphia 76ers',
+  '尼克斯':'New York Knicks','篮网':'Brooklyn Nets','老鹰':'Atlanta Hawks',
+  '黄蜂':'Charlotte Hornets','魔术':'Orlando Magic','活塞':'Detroit Pistons',
+  '雄鹿':'Milwaukee Bucks','明尼苏达':'Minnesota Timberwolves',
+  '灰熊':'Memphis Grizzlies','鹈鹕':'New Orleans Pelicans','马刺':'San Antonio Spurs',
+  '国王':'Sacramento Kings','掘金':'Denver Nuggets',
+  // ── MLS ──
+  '皇家盐湖城':'Real Salt Lake','堪萨斯城竞技':'Sporting Kansas City',
+  '新英格兰革命':'New England Revolution','蒙特利尔冲击':'CF Montreal',
+  '迈阿密国际':'Inter Miami','奥斯汀FC':'Austin FC',
+  '纽约红牛':'New York Red Bulls','纽约城':'New York City FC',
+  '华盛顿联':'DC United','达拉斯FC':'FC Dallas',
+  '夏洛特FC':'Charlotte FC','费城联合':'Philadelphia Union',
+  '亚特兰大联':'Atlanta United','哥伦布机员':'Columbus Crew',
+  '休斯顿迪纳摩':'Houston Dynamo','西雅图海湾人':'Seattle Sounders',
+  '芝加哥火焰':'Chicago Fire','纳什维尔':'Nashville SC',
+  '洛杉矶FC':'LAFC','奥兰多城':'Orlando City',
+  '温哥华白浪':'Vancouver Whitecaps','波特兰伐木工':'Portland Timbers',
+  '圣何塞地震':'San Jose Earthquakes','圣地亚哥FC':'San Diego FC',
+  '洛杉矶银河':'LA Galaxy','明尼苏达联':'Minnesota United',
+  '科罗拉多急流':'Colorado Rapids','西雅图':'Seattle Sounders',
+  // ── Liga MX ──
+  '蒙特雷':'Monterrey','圣路易斯':'Atletico San Luis',
+  '克雷塔罗':'Queretaro','托卢卡':'Toluca',
+  '蓝十字':'Cruz Azul','帕丘卡':'Pachuca',
+  '莱昂':'Leon','阿特拉斯':'Atlas',
+  '桑托斯拉古纳':'Santos Laguna','墨西哥美洲':'Club America',
+  '瓜达拉哈拉':'Chivas Guadalajara','普马斯':'Pumas UNAM',
+  '蒙特雷':'Monterrey','内卡萨':'Necaxa','圣路易斯':'Atletico San Luis',
+  // ── Brazil ──
+  '圣保罗':'Sao Paulo','克鲁塞罗':'Cruzeiro',
+  '科里蒂巴':'Coritiba','弗鲁米嫩塞':'Fluminense',
+  '瓦斯科达伽马':'Vasco da Gama','博塔弗戈':'Botafogo',
+  '弗拉门戈':'Flamengo','科林蒂安':'Corinthians',
+  '帕尔梅拉斯':'Palmeiras','国际':'Internacional',
+  '格雷米奥':'Gremio','巴伊亚':'Bahia','桑托斯':'Santos',
+  '米内罗竞技':'Atletico Mineiro','巴拉纳竞技':'Athletico Paranaense',
+  '维多利亚':'Vitoria','查佩科恩斯':'Chapecoense',
+  '米拉索尔':'Mirassol','布拉干蒂诺':'RB Bragantino',
+  '新港':'Nautico','庞特普雷塔':'Ponte Preta',
+  '新镇':'Vila Nova','竞技戈亚尼亚':'Atletico Goianiense',
+  '博塔弗戈SP':'Botafogo SP','圣贝尔纳多':'Sao Bernardo',
+  '雷莫':'Remo','福尔塔雷萨':'Fortaleza','茹文蒂德':'Juventude',
+  // ── Argentina ──
+  '罗萨里奥中央':'Rosario Central','图库曼竞技':'Atletico Tucuman',
+  '博卡青年':'Boca Juniors','河床':'River Plate','圣洛伦索':'San Lorenzo',
+  '独立队':'Independiente','比利时赛':'Belgrano',
+  '中央科尔多巴':'Central Cordoba SdE','纽韦尔':'Newell Old Boys',
+  // ── Colombia ──
+  '托利马体育':'Deportes Tolima','圣菲独立':'Independiente Santa Fe',
+  '库库塔竞技':'Cucuta Deportivo','卡利美洲':'America de Cali',
+  // ── Chile ──
+  '利马切':'Deportes Limache','拉卡莱拉联合':'Union La Calera',
+  '伊瓦顿':'Everton de Vina del Mar','纽夫莱恩斯':'Nublense',
+  '智利大学':'Universidad Chile','拉塞雷纳':'La Serena',
+  '康塞普西翁竞技':'Deportes Concepcion','科洛科洛':'Colo-Colo',
+  // ── Turkish ──
+  '萨姆松体育':'Samsunspor','科尼亚体育':'Konyaspor',
+  '卡拉古拉克':'Karagumruk','里泽斯堡':'Rizespor',
+  '安塔利亚体育':'Antalyaspor','埃尤普体育':'Eyupspor',
+  '费内巴切':'Fenerbahce','贝西克塔斯':'Besiktas',
+  '加拉塔萨雷':'Galatasaray','特拉布宗体育':'Trabzonspor',
+  // ── Russian ──
+  '奥林彼特':'Orenburg','罗斯托夫':'FC Rostov',
+  '马哈奇卡拉':'Akron Togliatti',
+  '莫斯科斯巴达':'Spartak Moscow','莫斯科火车头':'Lokomotiv Moscow',
+  '莫斯科中央陆军':'CSKA Moscow','莫斯科迪纳摩':'Dynamo Moscow',
+  '加里宁格勒波罗的海':'Baltika Kaliningrad',
+  // ── Korean K League ──
+  '安阳FC':'FC Anyang','首尔FC':'FC Seoul',
+  '仁川联合':'Incheon United','金泉尚武':'Gimcheon Sangmu',
+  '全北现代':'Jeonbuk Motors','蔚山现代':'Ulsan HD',
+  // ── Japanese J League ──
+  '广岛三箭':'Sanfrecce Hiroshima','福冈黄蜂':'Avispa Fukuoka',
+  '冈山绿雉':'Fagiano Okayama','神户胜利船':'Vissel Kobe',
+  '柏太阳神':'Kashiwa Reysol','横滨水手':'Yokohama F. Marinos',
+  '东京FC':'FC Tokyo','町田泽维亚':'FC Machida Zelvia',
+  '川崎前锋':'Kawasaki Frontale','浦和红钻':'Urawa Red Diamonds',
+  '长崎成功丸':'V-Varen Nagasaki','清水心跳':'Shimizu S-Pulse',
+  '鹿岛鹿角':'Kashima Antlers','名古屋鲸八':'Nagoya Grampus',
+  '大阪飞脚':'Gamba Osaka','大阪樱花':'Cerezo Osaka',
+  '横滨FC':'Yokohama FC','湘南海浪':'Shonan Bellmare',
+  // ── Chinese ──
+  '浙江':'Zhejiang FC','重庆铜梁龙':'Chongqing Liangjiang',
+  '深圳新鹏城':'Shenzhen FC','武汉三镇':'Wuhan Three Towns',
+  '天津津门虎':'Tianjin Tigers','上海申花':'Shanghai Shenhua',
+  '上海海港':'Shanghai Port','山东泰山':'Shandong Taishan',
+  '北京国安':'Beijing Guoan','广州城':'Guangzhou City',
+  '陕西联合':'Shaanxi United','石家庄功夫':'Shijiazhuang Gongfu',
+  '佛山南狮':'Foshan Nanshi','梅州客家':'Meizhou Hakka',
+  '长春亚泰':'Changchun Yatai','苏州东吴':'Suzhou Dongwu',
+  // ── Thai ──
+  '蒙通联':'Muangthong United','清莱联':'Chiangrai United',
+  '南奔勇士':'Lamphun Warriors','大城联':'Ayutthaya United',
+  '春武里':'Chonburi FC','罗勇':'Rayong FC',
+  '呵叻马自达':'Nakhon Ratchasima','乌泰他尼':'Uthai Thani FC',
+  '武里南联':'Buriram United','曼谷联':'Bangkok United',
+  // ── Romanian ──
+  '阿拉德联合':'UTA Arad','梅塔洛格布斯':'Metaloglobus',
+  '法鲁尔':'Farul Constanta','斯洛博齐亚':'Unirea Slobozia',
+  '布加勒斯特快速':'Rapid Bucharest','古积大学':'Univ. Craiova',
+  // ── Bulgarian ──
+  '查洛摩利':'Cherno More','索非亚斯拉维亚':'Slavia Sofia',
+  '多布鲁察':'Dobrudzha','索菲亚利夫斯基':'Levski Sofia',
+  '卢多戈雷茨':'Ludogorets','索菲亚1948':'Sofia 1948',
+  // ── Swedish ──
+  '卡尔马':'Kalmar FF','瓦斯特拉斯':'Vasteras SK',
+  'AIK索尔纳':'AIK','哈尔姆斯塔德':'Halmstad BK',
+  '奥尔格里特':'IFK Gothenburg','马尔默':'Malmo FF',
+  // ── UAE ──
+  '豪尔费坎':'Khor Fakkan','班尼亚斯':'Baniyas SC',
+  '渡巴阿富查伊拉':'Fujairah FC','迪哈夫拉':'Dhafra',
+  '沙迦':'Sharjah FC','艾因':'Al Ain',
+  '阿积曼':'Ajman Club','迪拜祈祷':'Al Wasl',
+  // ── Danish ──
+  '哥本哈根':'FC Copenhagen','施克堡':'Silkeborg IF',
+  '米德西兰':'FC Midtjylland','布伦比':'Brondby IF',
+  // ── Australian ──
+  '墨尔本胜利':'Melbourne Victory','惠灵顿凤凰':'Wellington Phoenix',
+  // ── Canadian ──
+  '太平洋':'Pacific FC','骑兵':'Cavalry FC',
+  '温哥华FC':'Vancouver FC','哈利法克斯漫游者':'HFX Wanderers',
+};
+
+function zhToEn(chineseName) {
+  return ZH_EN_TEAMS[chineseName] || chineseName;
+}
 
 // ═══════════════════════════════════════════
 // LEAGUES
@@ -2473,24 +2660,35 @@ function pairKey(teamA, teamB) {
 }
 
 // ── Parse prog.txt into externalStreamsMap ──
-// Format: TeamA x TeamB | URL1 | URL2 | …
+// Format: HH:MM   Team A x Team B | URL1 | URL2 | …
+// The time prefix (e.g. "20:00   ") must be stripped before team extraction.
 function parseProgTxt(text) {
   const map = {};
   const lines = (text||'').split('\n');
   for (const line of lines) {
     const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
+    if (!trimmed || trimmed.startsWith('#') || trimmed.startsWith('*')) continue;
+    if (!trimmed.includes('|')) continue;
     const parts = trimmed.split('|').map(p=>p.trim()).filter(Boolean);
     if (parts.length < 2) continue;
-    const matchStr = parts[0]; // "TeamA x TeamB"
-    const urls     = parts.slice(1).filter(u=>u.startsWith('http'));
-    // Split on ' x ', ' vs ', ' – ', ' - '
+
+    // parts[0] looks like "20:00   Southampton x Arsenal" — strip the time prefix
+    let matchStr = parts[0].replace(/^\d{1,2}:\d{2}\s+/, '').trim();
+    // Strip trailing women/event markers like "(W)"
+    matchStr = matchStr.replace(/\s*\(W\)\s*$/i, '').trim();
+
+    const urls = parts.slice(1).filter(u => u.startsWith('http'));
+    if (!urls.length) continue;
+
+    // Split on ' x ', ' vs ', ' – ', ' - ' (prog.txt uses ' x ')
     const sep = matchStr.match(/ (x|vs\.?|–|-) /i);
     if (!sep) continue;
-    const idx  = matchStr.toLowerCase().indexOf(sep[0].toLowerCase());
+    const idx   = matchStr.toLowerCase().indexOf(sep[0].toLowerCase());
     const teamA = matchStr.substring(0, idx).trim();
     const teamB = matchStr.substring(idx + sep[0].length).trim();
-    const key   = pairKey(teamA, teamB);
+    if (!teamA || !teamB) continue;
+
+    const key = pairKey(teamA, teamB);
     if (!map[key]) map[key] = [];
     for (const u of urls) map[key].push({url:u, type:'embed'});
   }
@@ -2580,27 +2778,126 @@ async function scrapeDDKanqu(home, away) {
   return null;
 }
 
-// ── Get DDKanqu URL for an event ──
-async function getDdkanquUrlForEvent(ev) {
-  if (ev.type === 'race') return null;
+// ── Fetch DDKanqu homepage and build event→URL map ──
+// DDKanqu lists today's matches in Chinese. We parse each match card for:
+//   - Chinese team names → translated to English via ZH_EN_TEAMS
+//   - /zhibo/XXXXX.html embed URL
+//   - HLS stream URL hidden in <!-- ... .m3u8 ... --> comment
+//   - Logo image URLs at ddkanqu.com/images/ChineseName.png (used as logo fallback)
+async function loadDDKanquHome() {
+  const url = 'https://ddkanqu.com/';
+  const proxies = [
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  ];
+  for (const proxy of proxies) {
+    try {
+      const res = await fetch(proxy, { signal: AbortSignal.timeout(12000) });
+      if (!res.ok) continue;
+      const html = await res.text();
+      ddkanquHomeMap = parseDDKanquHome(html);
+      const count = Object.keys(ddkanquHomeMap).length;
+      console.log(`[DDKanqu] Homepage parsed: ${count} match(es)`);
+      return count;
+    } catch(e) {
+      console.warn('[DDKanqu] Home fetch via', proxy, '→', e.message);
+    }
+  }
+  console.warn('[DDKanqu] Homepage load failed via all proxies');
+  return 0;
+}
+
+function parseDDKanquHome(html) {
+  const map = {};
+  // Each match card: <a ... href="/zhibo/XXXXX.html" ...> ... </a>
+  const cardRe = /<a[^>]+href="(\/zhibo\/\d+\.html)"[^>]*>([\s\S]*?)<\/a>/g;
+  let m;
+  while ((m = cardRe.exec(html)) !== null) {
+    const zhiBoPath = m[1];
+    const inner = m[2];
+
+    // Chinese team names
+    const homeM = inner.match(/class="left-team">([^<]+)<\/span>/);
+    const awayM = inner.match(/class="right-team">([^<]+)<\/span>/);
+    if (!homeM || !awayM) continue;
+
+    const zhHome = homeM[1].trim();
+    const zhAway = awayM[1].trim();
+
+    // HLS stream from HTML comment: <!--https://...m3u8?...-->
+    const hlsM = inner.match(/<!--\s*(https?:\/\/\S+\.m3u8\S*)\s*-->/);
+    const hls  = hlsM ? hlsM[1].trim() : null;
+
+    const zhibo   = 'https://ddkanqu.com' + zhiBoPath;
+    const enHome  = zhToEn(zhHome);
+    const enAway  = zhToEn(zhAway);
+    const key     = pairKey(enHome, enAway);
+
+    if (!map[key]) {
+      map[key] = { zhibo, hls, zhHome, zhAway, enHome, enAway };
+
+      // ── Logo fix: populate LOGO_CACHE with DDKanqu image URLs ──
+      // These are the actual logos DDKanqu uses, good for CJK/Asian teams that TSDB misses.
+      // We only set them if TSDB hasn't already cached something.
+      const ddkBase = 'https://ddkanqu.com/images/';
+      const hKey = enHome.toLowerCase().trim();
+      const aKey = enAway.toLowerCase().trim();
+      if (LOGO_CACHE[hKey] === undefined) {
+        LOGO_CACHE[hKey] = ddkBase + encodeURIComponent(zhHome) + '.png';
+        console.log(`[Logo/DDK] Pre-seeded ${enHome} → ${LOGO_CACHE[hKey]}`);
+      }
+      if (LOGO_CACHE[aKey] === undefined) {
+        LOGO_CACHE[aKey] = ddkBase + encodeURIComponent(zhAway) + '.png';
+        console.log(`[Logo/DDK] Pre-seeded ${enAway} → ${LOGO_CACHE[aKey]}`);
+      }
+    }
+
+    console.log(`[DDKanqu] ${zhHome}→${enHome} vs ${zhAway}→${enAway} | ${zhibo}${hls?' + HLS':''}`);
+  }
+  return map;
+}
+
+// ── Get all DDKanqu stream sources for an event ──
+// Returns array of {url, type} objects (zhibo embed + optional HLS)
+async function getDdkanquSourcesForEvent(ev) {
+  if (ev.type === 'race') return [];
   const key = pairKey(ev.home.name, ev.away.name);
+  const sources = [];
 
   // 1. Manual mapping overrides everything
-  if (ddkanquMappings[key]) return ddkUrl(ddkanquMappings[key]);
+  if (ddkanquMappings[key]) {
+    sources.push({ url: ddkUrl(ddkanquMappings[key]), type: 'mora' });
+    return sources;
+  }
 
-  // 2. Check in-memory + persisted cache
-  if (ddkanquCache[key] !== undefined) return ddkanquCache[key] || null;
+  // 2. Homepage map (freshly scraped, most reliable)
+  if (ddkanquHomeMap[key]) {
+    const entry = ddkanquHomeMap[key];
+    sources.push({ url: entry.zhibo, type: 'mora' });
+    if (entry.hls) sources.push({ url: entry.hls, type: 'hls' });
+    return sources;
+  }
 
-  // 3. Scraping (if enabled)
+  // 3. In-memory cache from previous scrapes
+  if (ddkanquCache[key] !== undefined) {
+    if (ddkanquCache[key]) sources.push({ url: ddkanquCache[key], type: 'mora' });
+    return sources;
+  }
+
+  // 4. Last resort: scrape DDKanqu search page (if enabled)
   if (CFG.enableDdkanqu) {
     const scraped = await scrapeDDKanqu(ev.home.name, ev.away.name);
     ddkanquCache[key] = scraped || '';
     try { localStorage.setItem(SK_DDKC, JSON.stringify({data:ddkanquCache,ts:Date.now()})); } catch(e){}
-    if (!scraped) toast(`⚠ DDKanqu: no result for ${ev.home.name} vs ${ev.away.name}`,'w');
-    return scraped;
+    if (scraped) sources.push({ url: scraped, type: 'mora' });
   }
+  return sources;
+}
 
-  return null;
+// ── Backward-compat wrapper (used in DDKanqu tester modal) ──
+async function getDdkanquUrlForEvent(ev) {
+  const sources = await getDdkanquSourcesForEvent(ev);
+  return sources.length ? sources[0].url : null;
 }
 
 // ── Find matching channels for an event's league ──
@@ -2620,11 +2917,11 @@ async function getAllStreamSourcesForEvent(ev) {
   if (!CFG.autoFetchStreams) return [];
   const sources = [];
 
-  // DDKanqu mora source
-  const ddk = await getDdkanquUrlForEvent(ev);
-  if (ddk) sources.push({url:ddk, type:'mora'});
+  // DDKanqu: zhibo embed + optional direct HLS
+  const ddkSources = await getDdkanquSourcesForEvent(ev);
+  sources.push(...ddkSources);
 
-  // Channel mora sources (league-matched)
+  // Channel mora sources (league-matched from Channel Library)
   sources.push(...getChannelsForEvent(ev));
 
   // SportsonLine embed sources (prog.txt)
@@ -2648,14 +2945,26 @@ async function refreshAllStreams() {
     toast('Enable "Auto-fetch External Streams" in Settings first','w'); return;
   }
   updateAggStatus('<span class="spinner"></span> Loading…','i');
-  await loadExternalStreams();
+
+  // Load prog.txt and DDKanqu homepage in parallel
+  const [,ddkCount] = await Promise.all([
+    loadExternalStreams(),
+    loadDDKanquHome(),
+  ]);
+
   ddkanquMappings = parseDDKMappings(CFG.ddkanquMappingsRaw);
-  const total = Object.keys(externalStreamsMap).length;
-  const mTotal = Object.keys(ddkanquMappings).length;
-  updateAggStatus(`✓ prog.txt: ${total} entries · DDKanqu mappings: ${mTotal}`,'s');
+  const progTotal = Object.keys(externalStreamsMap).length;
+  const mTotal    = Object.keys(ddkanquMappings).length;
+  const homeTotal = Object.keys(ddkanquHomeMap).length;
+
+  updateAggStatus(
+    `✓ prog.txt: ${progTotal} · DDKanqu home: ${homeTotal} · Manual maps: ${mTotal}`, 's'
+  );
   const el = document.getElementById('streams-status');
   if (el) el.textContent = `Updated ${new Date().toLocaleTimeString()}`;
-  toast('Streams refreshed ✓','s');
+  const badge = document.getElementById('agg-prog-badge');
+  if (badge) badge.textContent = `prog.txt: ${progTotal} · DDK: ${homeTotal}`;
+  toast(`Streams refreshed ✓ (prog: ${progTotal}, DDKanqu: ${homeTotal})`,'s');
 }
 
 function updateAggStatus(html, type='i') {
@@ -2734,8 +3043,18 @@ document.addEventListener('DOMContentLoaded', () => {
   ctx.fillText('SPORTS 803 · AUTO THUMBNAIL', cv.width/2, cv.height/2);
   // Auto-load external streams if configured
   if (CFG.autoFetchStreams) {
-    loadExternalStreams().catch(e=>console.warn('[Streams] init load failed:',e.message));
     ddkanquMappings = parseDDKMappings(CFG.ddkanquMappingsRaw);
+    // Load prog.txt and DDKanqu homepage in parallel on startup
+    Promise.all([
+      loadExternalStreams().catch(e => console.warn('[Streams] prog.txt init failed:', e.message)),
+      loadDDKanquHome().catch(e => console.warn('[DDKanqu] home init failed:', e.message)),
+    ]).then(([, ddkCount]) => {
+      const progCount = Object.keys(externalStreamsMap).length;
+      const homeCount = Object.keys(ddkanquHomeMap).length;
+      const badge = document.getElementById('agg-prog-badge');
+      if (badge) badge.textContent = `prog.txt: ${progCount} · DDK: ${homeCount}`;
+      persistLogoCache(); // save any DDKanqu logo seeds
+    });
   }
   console.log('[Sports 803] Dashboard v6-fixed loaded. Logo engine: TSDB primary → ESPN fallback. Stream aggregator: ready.');
 });
