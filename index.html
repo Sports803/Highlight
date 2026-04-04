@@ -238,7 +238,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-famil
       <div id="load-txt">Loading stream…</div>
       <div id="load-prog"><div id="load-fill"></div></div>
     </div>
-    <div id="sw-banner"><span class="sw-dot"></span><span id="sw-txt">Switching to next stream…</span></div>
+    <div id="sw-banner"><span class="sw-dot"></span><span id="sw-txt">Auto-switching stream…</span></div>
     <div id="err-panel">
       <div class="err-box">
         <div id="fb-countdown"></div>
@@ -333,8 +333,7 @@ const CFG={
   STORAGE_KEY:'sp_idx',CACHE_PREFIX:'sp_c_',CACHE_TTL:5*60*1000,
   PLAYER_TO:14000,MAX_RETRY:2,CTRL_FADE:3000,GESTURE_T:60,
   EMBED_TO:15000,EMBED_HTO:8000,EMBED_DEAD_PX:50,
-  AUTO_FALLBACK_DELAY:5000,
-  AUTO_NEXT_DELAY:4200, /* NEW: auto switch to next stream on error */
+  AUTO_NEXT_DELAY:4200,
   SANDBOX:'allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-presentation allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-downloads',
   PROXY:[
     u=>`https://corsproxy.io/?url=${encodeURIComponent(u)}`,
@@ -489,7 +488,7 @@ const D={
   pbFsBtn:document.getElementById('pb-fs-btn')
 };
 let appState='idle',playGen=0,retryCount=0;
-let ctrlTimer=null,toastTimer=null,gTimer=null,swTimer=null,autoFbTimer=null,autoNextTimer=null; /* NEW auto next timer */
+let ctrlTimer=null,toastTimer=null,gTimer=null,swTimer=null,autoNextTimer=null;
 let streams=[],curIdx=0,curStream=null,curPlayer=null,instances=[],curAdapter='';
 const Perf={t0:Date.now(),pStart:null,goT:null,switches:0,errors:0,log:[],sec(){return this.pStart?Math.round((Date.now()-this.pStart)/1000):0}};
 function safe(url){
@@ -512,7 +511,7 @@ function toast(msg,dur=2400){
   clearTimeout(toastTimer);D.toast.textContent=msg;D.toast.classList.add('show');
   toastTimer=setTimeout(()=>D.toast.classList.remove('show'),dur);
 }
-function showSwBanner(msg='Switching to next stream…'){
+function showSwBanner(msg='Auto-switching stream…'){
   clearTimeout(swTimer);D.swTxt.textContent=msg;D.swBanner.classList.add('show');
   swTimer=setTimeout(()=>D.swBanner.classList.remove('show'),3500);
 }
@@ -535,7 +534,25 @@ function setLoading(on,txt='Loading stream…',pct){
   else if(!on){D.loadProg.classList.remove('on');D.loadFill.style.width='0%';}
   if(on)appState='loading';
 }
-/* NEW: auto-switch to next stream */
+/* SMART AUTO-SWITCH HELPER – respects device type */
+function getNextPreferredIndex(current){
+  if(!streams.length)return 0;
+  let next=(current+1)%streams.length;
+  if(isIOS()){
+    /* iOS: skip DASH/MPD – only allow HLS or Embed */
+    let attempts=0;
+    while(attempts<streams.length){
+      const s=streams[next];
+      if(s&&(s.type==='hls'||s.type==='embed'))return next;
+      next=(next+1)%streams.length;
+      attempts++;
+    }
+    /* fallback if somehow no HLS/embed found */
+    return (current+1)%streams.length;
+  }
+  /* Android / Desktop / others – normal sequential (list is already ordered best-first) */
+  return next;
+}
 function startAutoNextSwitch(){
   clearTimeout(autoNextTimer);
   D.fbCountdown.classList.remove('running');
@@ -549,9 +566,9 @@ function startAutoNextSwitch(){
     if(appState==='error' && streams.length>1){
       GA.send('auto_next_triggered',{trigger:'timeout',retry_count:retryCount});
       hideError();
-      switchNext('auto_error');
+      const nextIdx=getNextPreferredIndex(curIdx);
+      switchNext('auto_error',nextIdx);
     }else if(appState==='error'){
-      /* fallback if only one stream */
       hideError();showFallback();
     }
   },CFG.AUTO_NEXT_DELAY);
@@ -563,30 +580,6 @@ function cancelAutoNextSwitch(reason='user'){
   D.fbCountdown.style.transform='scaleX(0)';
   GA.send('auto_next_cancelled',{cancel_reason:reason});
 }
-/* fallback kept for manual use */
-function startAutoFallback(){
-  clearTimeout(autoFbTimer);
-  D.fbCountdown.classList.remove('running');
-  D.fbCountdown.style.transition='none';
-  D.fbCountdown.style.transform='scaleX(0)';
-  void D.fbCountdown.offsetWidth;
-  D.fbCountdown.style.transition=`transform ${CFG.AUTO_FALLBACK_DELAY}ms linear`;
-  D.fbCountdown.style.transform='scaleX(1)';
-  GA.send('auto_fallback_started',{delay_sec:CFG.AUTO_FALLBACK_DELAY/1000,retry_count:retryCount});
-  autoFbTimer=setTimeout(()=>{
-    if(appState==='error'){
-      GA.send('auto_fallback_triggered',{trigger:'timeout',retry_count:retryCount});
-      hideError();showFallback();
-    }
-  },CFG.AUTO_FALLBACK_DELAY);
-}
-function cancelAutoFallback(reason='user'){
-  if(!autoFbTimer)return;
-  clearTimeout(autoFbTimer);autoFbTimer=null;
-  D.fbCountdown.style.transition='none';
-  D.fbCountdown.style.transform='scaleX(0)';
-  GA.send('auto_fallback_cancelled',{cancel_reason:reason});
-}
 function showError(rawErr=''){
   GA.stopMilestones();
   clearHost();Perf.errors++;
@@ -594,21 +587,19 @@ function showError(rawErr=''){
   D.errIco.textContent=f.ico;D.errTtl.textContent=f.ttl;D.errMsg.textContent=f.msg;
   if(f.hint){D.errHint.textContent=f.hint;D.errHint.classList.add('on');}else D.errHint.classList.remove('on');
   const rem=CFG.MAX_RETRY-retryCount;
-  /* UPDATED: show auto next message */
   D.errRetries.textContent=streams.length>1
     ?`Auto-switching to next stream in ${CFG.AUTO_NEXT_DELAY/1000}s…`
     :'Switching to backup…';
   D.btnRetry.disabled=rem<=0;
   D.errPanel.classList.add('active');appState='error';setLoading(false);
   GA.send('error_shown',{error_title:f.ttl,error_raw:rawErr.slice(0,150),retries_remaining:rem,stream_index:curIdx+1,adapter_name:curAdapter,watch_sec_before_error:Perf.sec()});
-  if(streams.length>1)startAutoNextSwitch(); /* NEW: prefer auto next */
-  else startAutoFallback();
+  if(streams.length>1)startAutoNextSwitch();
+  else{/* fallback only if single stream */}
 }
 function hideError(){
   D.errPanel.classList.remove('active');
   D.errRetries.textContent='';
   cancelAutoNextSwitch('panel_hidden');
-  cancelAutoFallback('panel_hidden');
 }
 function setBadge(s){
   if(!s){D.liveBadge.classList.remove('on');return;}
@@ -1039,14 +1030,14 @@ async function loadStreams(){
   GA.send('streams_load_complete',{total_streams:result.length,hls_count:result.filter(s=>s.type==='hls').length,dash_count:result.filter(s=>s.type==='dash').length,embed_count:result.filter(s=>s.type==='embed').length,resolve_ms:Date.now()-t0});
   return result;
 }
-function switchNext(trigger='button'){
+/* IMPROVED switchNext with device-aware logic */
+function switchNext(trigger='button',forcedNext=null){
   if(!streams.length)return;
-  let next=(curIdx+1)%streams.length;
-  if(isIOS()){let a=0;while(streams[next]?.type==='dash'&&a<streams.length){next=(next+1)%streams.length;a++;}}
-  GA.send('stream_switched',{from_index:curIdx+1,to_index:next+1,from_name:lbl(curIdx).name,to_name:lbl(next).name,trigger_source:trigger,watch_sec_before_switch:Perf.sec()});
+  const nextIdx=forcedNext!==null?forcedNext:getNextPreferredIndex(curIdx);
+  GA.send('stream_switched',{from_index:curIdx+1,to_index:nextIdx+1,from_name:lbl(curIdx).name,to_name:lbl(nextIdx).name,trigger_source:trigger,watch_sec_before_switch:Perf.sec()});
   Perf.switches++;
-  go(next);
-  toast(`${lbl(next).icon} ${lbl(next).name}`);
+  go(nextIdx);
+  toast(`${lbl(nextIdx).icon} ${lbl(nextIdx).name}`);
 }
 function refresh(trigger='button'){
   if(!curStream)return;
@@ -1057,7 +1048,6 @@ function refresh(trigger='button'){
 }
 async function go(idx){
   cancelAutoNextSwitch('navigation');
-  cancelAutoFallback('navigation');
   if(!streams.length)return;
   if(curStream&&Perf.pStart){GA.send('stream_play_ended',{stream_index:curIdx+1,watch_sec:Perf.sec(),adapter_name:curAdapter});}
   idx=Math.max(0,Math.min(idx,streams.length-1));
@@ -1143,7 +1133,6 @@ function showHelp(){D.scOverlay.classList.add('active');GA.send('help_opened',{t
 function closeHelp(){D.scOverlay.classList.remove('active');GA.send('help_closed');}
 function handleErrorRetry(){
   cancelAutoNextSwitch('user_retry');
-  cancelAutoFallback('user_retry');
   if(retryCount<CFG.MAX_RETRY){
     retryCount++;
     GA.send('error_retry',{retry_number:retryCount,max_retry:CFG.MAX_RETRY,stream_index:curIdx+1,adapter_name:curAdapter});
@@ -1152,7 +1141,6 @@ function handleErrorRetry(){
 }
 function handleErrorFallback(){
   cancelAutoNextSwitch('user_fallback');
-  cancelAutoFallback('user_fallback');
   GA.send('use_backup_clicked',{trigger:'error_panel',stream_index:curIdx+1});
   hideError();showFallback('user_requested');
 }
@@ -1174,7 +1162,6 @@ function handleErrorFallback(){
   let savedIdx=0;
   try{const s=parseInt(localStorage.getItem(CFG.STORAGE_KEY),10);if(!isNaN(s)&&s>=0&&s<streams.length){savedIdx=s;GA.send('saved_stream_restored',{saved_index:s+1});}}catch{}
   await go(savedIdx);
-  /* attach all buttons once */
   D.eeRetryBtn.addEventListener('click',()=>SP.retryEmbed());
   D.eeNext.addEventListener('click',()=>SP.nextEmbedSource());
   D.eeFallback.addEventListener('click',()=>SP.goFallback());
@@ -1195,7 +1182,7 @@ return{
   toggleFullscreen:(t)=>toggleFullscreen(t||'button'),
   togglePiP:(t)=>togglePiP(t||'button'),
   handleErrorRetry,handleErrorFallback,
-  goFallback(){cancelAutoNextSwitch('user_fallback');cancelAutoFallback('user_fallback');GA.send('use_backup_clicked',{trigger:'embed_error_panel',stream_index:curIdx+1});EmbedMgr.unmount();showFallback('user_requested');},
+  goFallback(){cancelAutoNextSwitch('user_fallback');GA.send('use_backup_clicked',{trigger:'embed_error_panel',stream_index:curIdx+1});EmbedMgr.unmount();showFallback('user_requested');},
   retryEmbed:()=>EmbedMgr.retry(),
   nextEmbedSource:()=>EmbedMgr.nextSource(),
 };
